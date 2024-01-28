@@ -43,46 +43,36 @@ export class MoveAction extends Action {
     }
   }
 
-  isComplete(creep: RoomObject): boolean {
-    if (creep instanceof Creep) {
-      return creep.pos.inRangeTo(this.Target, this.Range);
-    }
-    throw new Error("Move Actions not applicable to Non-Creeps");
+  isComplete(creep: Creep): boolean {
+    return creep.pos.inRangeTo(this.Target, this.Range);
   };
 
-  cleanup(creep: Creep): void {
-  };
-
-  run(creep: RoomObject): ScreepsReturnCode {
-    if (creep instanceof Creep) {
-      //let attemptedRoute = creep.memory._move?.path?.charAt(0);
-
-      let result = creep.moveTo(this.Target,
-        {
-          range: this.Range,
-          reusePath: Math.max(creep.pos.getRangeTo(this.Target) * 0.75, 5),
-          ignoreCreeps: (creep.pos.findClosestByRange(FIND_CREEPS)?.pos.getRangeTo(creep.pos) ?? Infinity) > 2,
-          visualizePathStyle: {}
-        });
-      if (result != OK && result != ERR_TIRED && result != ERR_BUSY && this.Shove) {
-        log(1, `Shoving Creep: ${creep.name} has error: ${result} on movement`);
-      }
-      if (result == ERR_NO_PATH && this.Shove) {
-        // //Consider shoving logic
-        // if (attemptedRoute) {
-        //   let nextDirNum = parseInt(attemptedRoute);
-        //   let nextPos = GetPositionFromDirection(creep.pos, nextDirNum);
-        //   let occupyingCreeps = nextPos.lookFor(LOOK_CREEPS);
-        //   for (const inTheWay of occupyingCreeps) {
-        //     log(1, `Shoving: ${inTheWay.name} out of the way of ${creep.name}`);
-        //     inTheWay.memory.plan.Steps.unshift(new MoveAction(creep.pos));
-        //   }
-        // } else {
-        //   log(1, `${creep.name} was unable to figure out how to shove`);
-        // }
-      }
-      return result;
+  run(creep: Creep): ScreepsReturnCode {
+     //let attemptedRoute = creep.memory._move?.path?.charAt(0);
+    let result = creep.moveTo(this.Target,
+      {
+        range: this.Range,
+        reusePath: Math.max(creep.pos.getRangeTo(this.Target) * 0.75, 5),
+        ignoreCreeps: (creep.pos.findClosestByRange(FIND_CREEPS)?.pos.getRangeTo(creep.pos) ?? Infinity) > 2,
+        visualizePathStyle: {}
+      });
+    if (result != OK && result != ERR_TIRED && result != ERR_BUSY && this.Shove) {
+      log(1, `Shoving Creep: ${creep.name} has error: ${result} on movement`);
     }
-    throw new Error("Move Actions not applicable to Non-Creeps");
+    if (result == ERR_NO_PATH && this.Shove) {
+      // //Consider shoving logic
+      // if (attemptedRoute) {
+      //   let nextDirNum = parseInt(attemptedRoute);
+      //   let nextPos = GetPositionFromDirection(creep.pos, nextDirNum);
+      //   let occupyingCreeps = nextPos.lookFor(LOOK_CREEPS);
+      //   for (const inTheWay of occupyingCreeps) {
+      //     log(1, `Shoving: ${inTheWay.name} out of the way of ${creep.name}`);
+      //     inTheWay.memory.plan.Steps.unshift(new MoveAction(creep.pos));
+      //   }
+      // } else {
+      //   log(1, `${creep.name} was unable to figure out how to shove`);
+      // }
+    }
+    return result;
   }
 }

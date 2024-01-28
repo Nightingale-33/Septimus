@@ -42,7 +42,7 @@ export class UpgradeAction extends Action {
 
   cleanup(creep : Creep) : void {};
 
-  run(runner: RoomObject): ScreepsReturnCode {
+  run(creep: Creep): ScreepsReturnCode {
     if (runner instanceof Creep) {
       let target = this.Target;
       return target ? runner.upgradeController(target) : ERR_INVALID_TARGET;

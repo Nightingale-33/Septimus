@@ -1,7 +1,10 @@
 import { log } from "../utils/Logging/Logger";
+import { Delegation } from "../lib/Delegation";
 
 export class Prefecture {
   Initialised: boolean = false;
+
+  Delegations: Delegation[] = [];
 
   RoomName: string;
   get room() : Room {return Game.rooms[this.RoomName];}
@@ -20,5 +23,16 @@ export class Prefecture {
   {
     this.Initialised = true;
     log(2,`Prefecture at: ${this.RoomName} initialised`);
+  }
+
+  Run()
+  {
+    for(const delegation of this.Delegations)
+    {
+      if(delegation.ShouldExecute())
+      {
+        delegation.Execute();
+      }
+    }
   }
 }

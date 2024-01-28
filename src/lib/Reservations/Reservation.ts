@@ -1,5 +1,7 @@
+export type reservationId = string;
+
 export abstract class Reservation<T extends _HasId,T2 extends _HasId> {
-  reservationId: string;
+  reservationId: reservationId;
   reserver: Id<T>;
   reserved: Id<T2>;
 

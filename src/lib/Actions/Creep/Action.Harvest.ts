@@ -14,7 +14,7 @@ export class HarvestAction extends Action {
     return Game.getObjectById(this.TargetId);
   }
 
-  constructor(source: Source | Mineral, suppressComplete : boolean = false) {
+  constructor(source: Source | Mineral, suppressComplete: boolean = false) {
     super();
     this.TargetId = source.id;
     this.SuppressComplete = suppressComplete;
@@ -26,12 +26,12 @@ export class HarvestAction extends Action {
   }
 
   static fromJSON(data: string) {
-    let components = data.split(',',2);
+    let components = data.split(",", 2);
     let id = components[0] as Id<Source | Mineral>;
     let suppressComplete = components[1] == "true";
     let target = Game.getObjectById(id);
     if (target) {
-      return new HarvestAction(target,suppressComplete);
+      return new HarvestAction(target, suppressComplete);
     } else {
       return null;
     }
@@ -39,29 +39,19 @@ export class HarvestAction extends Action {
 
   SuppressComplete: boolean = false;
 
-  isComplete(creep: RoomObject): boolean {
-    if (creep instanceof Creep) {
-      let source = Game.getObjectById(this.TargetId);
-      let depleted = false;
-      if(source instanceof Source)
-      {
-        depleted = source.energy <= 0;
-      } else if(source instanceof Mineral)
-      {
-        depleted = source.mineralAmount <= 0;
-      }
-      return depleted || (!this.SuppressComplete && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0);
+  isComplete(creep: Creep): boolean {
+    let source = Game.getObjectById(this.TargetId);
+    let depleted = false;
+    if (source instanceof Source) {
+      depleted = source.energy <= 0;
+    } else if (source instanceof Mineral) {
+      depleted = source.mineralAmount <= 0;
     }
-    throw new Error("Harvest Actions not applicable to Non-Creeps");
+    return depleted || (!this.SuppressComplete && creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0);
   };
 
-  cleanup(creep : Creep) : void {};
-
-  run(runner: RoomObject): ScreepsReturnCode {
-    if (runner instanceof Creep) {
-      let target = this.Target;
-      return target ? runner.harvest(target) : ERR_INVALID_TARGET;
-    }
-    throw new Error("Harvest Actions not applicable to Non-Creeps");
+  run(creep: Creep): ScreepsReturnCode {
+    let target = this.Target;
+    return target ? creep.harvest(target) : ERR_INVALID_TARGET;
   }
 }

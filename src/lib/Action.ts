@@ -14,11 +14,13 @@ import { log } from "../utils/Logging/Logger";
 export abstract class Action {
 
 
-  cleanup(creep: Creep):void;
+  cleanup(creep: Creep):void {}
 
+  abstract isComplete(creep: Creep): boolean;
 
-  static fromJSON(data: string): Action | null
-  {
+  abstract run(creep: Creep) : ScreepsReturnCode;
+
+  static fromJSON = (data: string): Action | null => {
     let components = data.split(":", 2);
     let id = components[0];
     let actionData = components[1];
@@ -72,5 +74,5 @@ export abstract class Action {
         return IdleAction.fromJSON(actionData);
       }
     }
-  }
+  };
 }

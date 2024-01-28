@@ -14,11 +14,26 @@ export class BuildReservation extends Reservation<Creep,ConstructionSite> {
     this.amount = amount;
   }
 
+  static CheckMemory(target: ConstructionSite): boolean
+  {
+    if(!Memory.BuildResv)
+    {
+      Memory.BuildResv = {};
+    }
+
+    if(!Memory.BuildResv[target.id])
+    {
+      return false;
+    }
+
+    return true;
+  }
+
   static GetPostReservationProgress(target: ConstructionSite): number
   {
     let progress = target.progress;
 
-    if (!Memory.BuildResv[target.id]) {
+    if (!this.CheckMemory(target)) {
       return progress;
     }
 

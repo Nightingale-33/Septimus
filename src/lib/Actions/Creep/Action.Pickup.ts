@@ -11,18 +11,20 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
   Chat: string = "🫳";
 
   TargetId : Id<Resource>;
-  ReservationId? : string;
+
   get Target(): Resource | null {
     return Game.getObjectById(this.TargetId);
   };
 
   constructor(target: Resource, creep : Creep | undefined = undefined) {
-    super();
-    this.TargetId = target.id;
+    let reservation : ResourceReservation | undefined = undefined;
     if(creep)
     {
-      //this.ReservationId = AddResourceReservation(creep,target,target.resourceType, Math.min(0,-1 * Math.min(creep.store.getFreeCapacity(target.resourceType),target.amount)));
+      let reservationAmount = Math.min(0,-1 * Math.min(creep.store.getFreeCapacity(target.resourceType),target.amount));
+      reservation = new ResourceReservation(creep,target,reservationAmount,target.resourceType);
     }
+    super(reservation);
+    this.TargetId = target.id;
   }
 
   isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
@@ -36,17 +38,14 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
     throw new Error("Pickup Actions are invalid on Non-Creeps");
   };
 
-  cleanup(creep : Creep) : void {
-    //remove(creep.memory.activeReservations, (s) => s === this.ReservationId);
-  };
-
-  run: (runner: RoomObject) => ScreepsReturnCode = (creep: RoomObject) => {
+  run: (creep: Creep) => ScreepsReturnCode = (creep: RoomObject) => {
     if (creep instanceof Creep) {
       let target = this.Target;
       return target ? creep.pickup(target) : ERR_INVALID_TARGET;
     }
     throw new Error("Pickup Actions are invalid on Non-Creeps");
   };
+
   toJSON: () => string = () => {
     return PICKUP_ID + ":" + this.TargetId + "," + this.ReservationId;
   };

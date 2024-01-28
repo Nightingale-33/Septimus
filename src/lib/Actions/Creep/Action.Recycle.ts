@@ -38,7 +38,7 @@ export class RecycleAction extends Action {
 
   cleanup(creep : Creep) : void {};
 
-  run(runner: RoomObject): ScreepsReturnCode {
+  run(creep: Creep): ScreepsReturnCode {
     if (runner instanceof Creep) {
       if(this.Target)
       {

@@ -1,10 +1,13 @@
 import { Prefecture } from "../Prefecture Level/Prefecture";
 import { log } from "../utils/Logging/Logger";
 import { flatten } from "lodash";
+import { Delegation } from "../lib/Delegation";
 
 export class Province {
   Prefectures: Prefecture[];
   Capital: Prefecture;
+
+  Delegations: Delegation[] = [];
 
   Initialised : boolean = false;
 
@@ -29,5 +32,21 @@ export class Province {
 
     this.Initialised = true;
     log(1,`Province at: ${this.Capital.RoomName} Initialised`);
+  }
+
+  Run()
+  {
+    for(const delegation of this.Delegations)
+    {
+      if(delegation.ShouldExecute())
+      {
+        delegation.Execute();
+      }
+    }
+
+    for(const prefecture of this.Prefectures)
+    {
+      prefecture.Run();
+    }
   }
 }

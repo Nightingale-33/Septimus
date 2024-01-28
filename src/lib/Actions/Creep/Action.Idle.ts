@@ -4,10 +4,9 @@ import { Action } from "../../Action";
 export const IDLE_ID: string = "I";
 
 export class IdleAction extends Action {
-  constructor(say : string | undefined = undefined) {
+  constructor(say: string | undefined = undefined) {
     super();
-    if(say)
-    {
+    if (say) {
       this.Chat = say;
     }
   }
@@ -27,15 +26,9 @@ export class IdleAction extends Action {
     return true;
   };
 
-  cleanup(creep : Creep) : void {};
-
-  run(runner: RoomObject): ScreepsReturnCode {
-    if (runner instanceof Creep) {
-      let Direction = Math.floor(Math.random() * 57);
-      let Dir = ((Direction % 8) + 1) as DirectionConstant;
-      return runner.move(Dir);
-    } else {
-      return OK;
-    }
+  run(creep: Creep): ScreepsReturnCode {
+    let Direction = Math.floor(Math.random() * 57);
+    let Dir = ((Direction % 8) + 1) as DirectionConstant;
+    return creep.move(Dir);
   }
 }

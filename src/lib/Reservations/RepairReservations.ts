@@ -13,11 +13,27 @@ export class RepairReservation extends Reservation<Creep,Structure> {
     super(creep,str);
     this.amount = amount;
   }
+
+  static CheckMemory(target: Structure): boolean
+  {
+    if(!Memory.RepairResv)
+    {
+      Memory.RepairResv = {};
+    }
+
+    if(!Memory.RepairResv[target.id])
+    {
+      return false;
+    }
+
+    return true;
+  }
+
   static GetPostReservationHits(target: Structure): number
   {
     let hits = target.hits;
 
-    if (!Memory.RepairResv[target.id]) {
+    if (!this.CheckMemory(target)) {
       return hits;
     }
 

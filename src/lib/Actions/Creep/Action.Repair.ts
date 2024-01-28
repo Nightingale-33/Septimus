@@ -2,6 +2,7 @@ import { all, min, remove } from "lodash";
 //import { AddRepairReservation } from "../../utils/Reservations/RepairReservations";
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { RepairReservation } from "../../Reservations/RepairReservations";
+import { ResourceReservation } from "../../Reservations/ResourceReservations";
 
 export const REPAIR_ID: string = "R";
 
@@ -11,19 +12,20 @@ export class RepairAction extends ReservingAction<RepairReservation> {
   Name: string = "Repair";
 
   TargetId: Id<Structure>;
-  ReservationId? : string;
 
   get Target(): Structure | null {
     return Game.getObjectById(this.TargetId);
   }
 
   constructor(structure: Structure, creep : Creep | undefined = undefined) {
-    super();
-    this.TargetId = structure.id;
+    let reservation : RepairReservation | undefined = undefined;
     if(creep)
     {
-      //this.ReservationId = AddRepairReservation(creep,structure,Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
+      let reservationAmount = Math.min(0,-1 * Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
+      reservation = new RepairReservation(creep,structure,reservationAmount);
     }
+    super(reservation);
+    this.TargetId = structure.id;
   }
 
   toJSON(): string {
@@ -62,7 +64,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     //remove(creep.memory.activeReservations, (s) => s === this.ReservationId);
   };
 
-  run(creep: RoomObject): ScreepsReturnCode {
+  run(creep: Creep): ScreepsReturnCode {
     if (creep instanceof Creep) {
       let target = this.Target;
       let result = target ? creep.repair(target) : ERR_INVALID_TARGET;

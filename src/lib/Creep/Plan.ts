@@ -4,6 +4,18 @@ declare global {
   interface CreepMemory {
     plan: Plan;
   }
+
+  interface Creep {
+    executePlan() : void
+  }
+}
+
+Creep.prototype.executePlan = function()
+{
+    if(this.memory.plan && this.memory.plan.Steps)
+    {
+
+    }
 }
 
 export class Plan {
@@ -26,7 +38,7 @@ export class Plan {
   }
 
   static fromJSON(data: string[]): Plan {
-    let actions = data.map((s) => Action.fromJSON(s));
+    let actions = data.map((s) => Action.fromJSON(s)).filter((a) : a is Action => a !== null);
     return new Plan(actions);
   }
 

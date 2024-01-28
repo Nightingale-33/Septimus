@@ -1,6 +1,3 @@
-import { Action } from "../../Action";
-import { all, remove } from "lodash";
-//import { AddResourceReservation, GetPostReservationStore, Reserves } from "../../utils/Reservations/ResourceReservations";
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
 
@@ -11,7 +8,6 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   Chat: string = "📤";
 
   TargetId: Id<AnyStoreStructure | Ruin>;
-  ReservationId? : string;
 
   get Target(): AnyStoreStructure | Ruin | null {
     return Game.getObjectById(this.TargetId);
@@ -20,13 +16,15 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   ResourceType: ResourceConstant;
 
   constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | undefined = undefined) {
-    super();
-    this.TargetId = target.id;
-    this.ResourceType = resource;
+    let reservation : ResourceReservation | undefined = undefined;
     if(creep)
     {
-      //this.ReservationId = AddResourceReservation(creep,target,resource, Math.min(0,-1 * Math.min(creep.store.getFreeCapacity(resource),GetPostReservationStore(target,resource).used)));
+      let reservationAmount = Math.min(0,-1 * Math.min(creep.store.getFreeCapacity(resource),ResourceReservation.GetPostReservationStore(target,resource).used));
+      reservation = new ResourceReservation(creep,target,reservationAmount,resource);
     }
+    super(reservation);
+    this.TargetId = target.id;
+    this.ResourceType = resource;
   }
 
   isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
@@ -35,22 +33,19 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
       if (!target) {
         return true;
       }
-      return creep.store.getFreeCapacity(this.ResourceType) == 0;// || GetPostReservationStore(target,this.ResourceType).used <= 0;
+      return creep.store.getFreeCapacity(this.ResourceType) == 0 || ResourceReservation.GetPostReservationStore(target,this.ResourceType).used <= 0;
     }
     throw new Error("Withdraw Actions are invalid on Non-Creeps");
   };
 
-  cleanup(creep : Creep) : void {
-    //remove(creep.memory.activeReservations, (s) => s === this.ReservationId);
-  };
-
-  run: (runner: RoomObject) => ScreepsReturnCode = (creep: RoomObject) => {
+  run: (creep: Creep) => ScreepsReturnCode = (creep: RoomObject) => {
     if (creep instanceof Creep) {
       let target = this.Target;
       return target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET;
     }
     throw new Error("Withdraw Actions are invalid on Non-Creeps");
   };
+
   toJSON: () => string = () => {
     return WITHDRAW_ID + ":" + this.TargetId + "," + this.ResourceType + "," + this.ReservationId;
   };
