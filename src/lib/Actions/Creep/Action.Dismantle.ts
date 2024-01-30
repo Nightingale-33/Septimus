@@ -35,6 +35,10 @@ export class DismantleAction extends Action {
     }
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete(creep: Creep) : boolean
   {
     return creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 || (!Game.getObjectById(this.TargetId));
@@ -42,8 +46,8 @@ export class DismantleAction extends Action {
 
   cleanup(creep : Creep) : void {};
 
-  run(creep: Creep): ScreepsReturnCode {
+  run(creep: Creep): boolean {
     let target = this.Target;
-    return target ? creep.dismantle(target) : ERR_INVALID_TARGET;
+    return (target ? creep.dismantle(target) : ERR_INVALID_TARGET) == OK;
   }
 }

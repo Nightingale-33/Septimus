@@ -1,3 +1,5 @@
+import { GetRandomId } from "../../utils/StringUtils";
+
 export type reservationId = string;
 
 export abstract class Reservation<T extends _HasId,T2 extends _HasId> {
@@ -6,7 +8,7 @@ export abstract class Reservation<T extends _HasId,T2 extends _HasId> {
   reserved: Id<T2>;
 
   protected GetNewReservationId() : string {
-    return Math.random().toString(16).slice(2);
+    return GetRandomId();
   }
 
 

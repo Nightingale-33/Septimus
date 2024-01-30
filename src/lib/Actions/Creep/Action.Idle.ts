@@ -1,4 +1,3 @@
-import { all } from "lodash";
 import { Action } from "../../Action";
 
 export const IDLE_ID: string = "I";
@@ -22,13 +21,16 @@ export class IdleAction extends Action {
   Chat: string = "💤";
   Name: string = "Idle";
 
+  isValid(creep: Creep): boolean {
+    return true;
+  }
   isComplete(_: RoomObject): boolean {
     return true;
   };
 
-  run(creep: Creep): ScreepsReturnCode {
+  run(creep: Creep): boolean {
     let Direction = Math.floor(Math.random() * 57);
     let Dir = ((Direction % 8) + 1) as DirectionConstant;
-    return creep.move(Dir);
+    return creep.move(Dir) === OK;
   }
 }

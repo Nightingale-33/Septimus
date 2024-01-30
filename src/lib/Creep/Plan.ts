@@ -1,4 +1,7 @@
 import { Action } from "../Action";
+import { all } from "lodash";
+import { ActionfromJSON } from "../ActionGenerator";
+import { CHATTY } from "../../Constants";
 
 declare global {
   interface CreepMemory {
@@ -6,15 +9,52 @@ declare global {
   }
 
   interface Creep {
-    executePlan() : void
+    checkPlan() : void;
+    executePlan() : void;
+  }
+}
+
+Creep.prototype.checkPlan = function()
+{
+  if(!this.memory.plan)
+  {
+    this.memory.plan = new Plan([]);
+  }
+  if(!this.memory.plan.Steps)
+  {
+    this.memory.plan.Steps = [];
+  }
+
+  if(!all(this.memory.plan.Steps, (step ) => step.isValid(this)))
+  {
+    this.memory.plan.clear(this);
   }
 }
 
 Creep.prototype.executePlan = function()
 {
-    if(this.memory.plan && this.memory.plan.Steps)
+    if(!this.memory.plan.isEmpty())
     {
+      let step = this.memory.plan.Steps[0];
+      let result = step.run(this);
+      //Todo: Use results to try and multi-task
+      if(step.isComplete(this))
+      {
+        let completedStep = this.memory.plan.Steps.shift();
+        if(completedStep)
+        {
+          completedStep.cleanup(this);
+        }
+      }
 
+      if(CHATTY)
+      {
+        let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
+        if (this.memory.plan.Steps.length > 3) {
+          chatPlan += "+";
+        }
+        this.say(chatPlan);
+      }
     }
 }
 
@@ -38,11 +78,27 @@ export class Plan {
   }
 
   static fromJSON(data: string[]): Plan {
-    let actions = data.map((s) => Action.fromJSON(s)).filter((a) : a is Action => a !== null);
+    let actions = data.map((s) => ActionfromJSON(s)).filter((a) : a is Action => a !== null);
     return new Plan(actions);
   }
 
   toJSON(): Action[] {
     return this.Steps;
+  }
+
+  peek(): Action | null {
+    return this.Steps.length > 0 ? this.Steps[0] : null;
+  }
+
+  isEmpty(): boolean {
+    return this.Steps.length === 0;
+  }
+
+  append(act: Action) {
+    this.Steps.push(act);
+  }
+
+  prepend(act: Action) {
+    this.Steps.unshift(act);
   }
 }

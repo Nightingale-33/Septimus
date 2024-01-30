@@ -8,11 +8,11 @@ declare global {
   }
 }
 
-export class ReservingAction<T extends Reservation<Creep,_HasId>> extends Action {
+export abstract class ReservingAction<T extends Reservation<Creep,_HasId>> extends Action {
 
   ReservationId?:reservationId;
 
-  constructor(reservation: T | undefined = undefined) {
+  protected constructor(reservation: T | undefined = undefined) {
     super();
     if (reservation)
     {

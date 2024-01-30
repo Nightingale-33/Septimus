@@ -1,5 +1,3 @@
-import { Action } from "../../Action";
-import { all, remove } from "lodash";
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { BuildReservation } from "../../Reservations/BuildReservations";
 
@@ -47,6 +45,10 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     }
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete(creep: Creep): boolean {
     let target = this.Target;
     if (!target) {
@@ -55,7 +57,7 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     return creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || target.progress >= target.progressTotal;
   };
 
-  run(creep: Creep): ScreepsReturnCode {
+  run(creep: Creep): boolean {
     let target = this.Target;
     let result = target ? creep.build(target) : ERR_INVALID_TARGET;
     if (target && result == OK) {
@@ -65,6 +67,6 @@ export class BuildAction extends ReservingAction<BuildReservation> {
         thisReservation.amount = Math.min(0, thisReservation.amount - creepWorkParts * BUILD_POWER);
       }
     }
-    return result;
+    return result == OK;
   }
 }

@@ -1,4 +1,0 @@
-interface Memory {
-    Provinces: string[];
-}
-

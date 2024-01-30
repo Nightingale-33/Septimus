@@ -30,20 +30,24 @@ export class FillAction extends ReservingAction<ResourceReservation> {
     this.ResourceType = resource;
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
     if (creep instanceof Creep) {
       let target = this.Target;
       if (!target) {
         return true;
       }
-      return creep.store.getUsedCapacity(this.ResourceType) == 0;// || GetPostReservationStore(target,this.ResourceType).free <= 0;
+      return creep.store.getUsedCapacity(this.ResourceType) == 0 || ResourceReservation.GetPostReservationStore(target,this.ResourceType).free <= 0;
     }
     throw new Error("Fill Actions are invalid on Non-Creeps");
   };
 
-  run: (creep: Creep) => ScreepsReturnCode = (creep: Creep) => {
+  run(creep: Creep) : boolean {
     let target = this.Target;
-    return target ? creep.transfer(target, this.ResourceType) : ERR_INVALID_TARGET;
+    return (target ? creep.transfer(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
 
   toJSON: () => string = () => {

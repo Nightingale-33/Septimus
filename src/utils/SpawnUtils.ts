@@ -1,0 +1,74 @@
+import { countBy } from "lodash";
+import { log } from "./Logging/Logger";
+import { Role } from "../lib/Roles/Role";
+import { Plan } from "../lib/Creep/Plan";
+
+declare global {
+  interface Memory {
+    creepNum: number;
+  }
+}
+
+export function MaxSpawnEnergy(spawn : StructureSpawn): number
+{
+  return spawn.room.energyCapacityAvailable;
+}
+
+export function AvailableSpawnEnergy(spawn : StructureSpawn): number
+{
+  return spawn.room.energyAvailable;
+}
+
+function FixBodyWithMove(body : BodyPartConstant[]) : BodyPartConstant[]
+{
+  let perType = countBy(body);
+  let neededAdditionalMoveParts = Math.floor(Math.max(0, (perType[CARRY] ?? 0) * 2 + (perType[WORK] ?? 0) - (perType[MOVE] ?? 0) * 2) / 2);
+  if(neededAdditionalMoveParts == 0)
+  {
+    return body;
+  }
+  let additionalMove = [...Array(neededAdditionalMoveParts)].map(() => MOVE);
+  return body.concat(additionalMove);
+}
+
+export function GetLargestBody(spawn : StructureSpawn, baseBody: BodyPartConstant[], bodyAddition: BodyPartConstant[], maximumAddons : number = Infinity, fixMove : boolean = true)
+{
+    let bodyToSpawn = baseBody;
+    let lastWorkingBody : BodyPartConstant[] = [];
+    let addons = 0;
+    while (spawn.spawnCreep(bodyToSpawn, "Test", { dryRun: true }) == OK && addons < maximumAddons) {
+      lastWorkingBody = bodyToSpawn;
+      bodyToSpawn = bodyToSpawn.concat(bodyAddition);
+      if(fixMove)
+      {
+        bodyToSpawn = FixBodyWithMove(bodyToSpawn);
+      }
+      addons++;
+    }
+    bodyToSpawn = lastWorkingBody;
+    return bodyToSpawn;
+}
+
+export function GetCreepMemory(role: Role, provinceName: string): CreepMemory
+{
+  return {role: role, Province: provinceName, activeReservations: [], plan: new Plan([]), missionId: undefined}
+}
+
+export function SpawnCreep(spawn : StructureSpawn, bodyToSpawn: BodyPartConstant[], memory: CreepMemory)
+{
+  if (!spawn.isActive()) {
+    log(1, "Attempted to spawn via inactive spawn");
+    return false;
+  }
+
+  if (spawn.spawning) {
+    log(5, "Spawner is currently busy");
+    return false;
+  }
+
+  Memory.creepNum++;
+  let result = spawn.spawnCreep(bodyToSpawn, memory.role + Memory.creepNum, {
+    memory: memory
+  });
+  return result == OK;
+}

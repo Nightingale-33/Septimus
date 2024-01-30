@@ -12,6 +12,7 @@ declare global {
     interface Global {
       SetLogLevel(level: number): boolean;
       SetAuditFlag(flag: LOG_FLAG): boolean;
+      AuditFlagSet(flag: LOG_FLAG): boolean;
       ClearAuditFlag(flag: LOG_FLAG):boolean;
     }
   }
@@ -20,12 +21,20 @@ declare global {
 export function log(logLevel: number | LOG_FLAG, message: string) {
   if(isNumber(logLevel))
   {
+    if(Memory.logLevel === undefined)
+    {
+      Memory.logLevel = 1;
+    }
     if(Memory.logLevel < logLevel)
     {
       return;
     }
   } else
   {
+    if(Memory.logFlags === undefined)
+    {
+      Memory.logFlags = [];
+    }
     if(!Memory.logFlags.includes(logLevel))
     {
       return;
@@ -48,6 +57,10 @@ global.SetAuditFlag = function(flag: LOG_FLAG) {
     return true;
   }
   return false;
+}
+
+global.AuditFlagSet = function(flag: LOG_FLAG) : boolean {
+  return Memory.logFlags.includes(flag);
 }
 
 global.ClearAuditFlag = function(flag: LOG_FLAG) {

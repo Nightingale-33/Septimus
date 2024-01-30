@@ -32,28 +32,25 @@ export class RecycleAction extends Action {
   Chat: string = "🗑️";
   Name: string = "Recycle";
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete(_: RoomObject): boolean {
     return false;
   };
 
   cleanup(creep : Creep) : void {};
 
-  run(creep: Creep): ScreepsReturnCode {
-    if (runner instanceof Creep) {
-      if(this.Target)
-      {
-        return this.Target.recycleCreep(runner);
-      } else
-      {
-        let newTarget = runner.pos.findClosestByRange(FIND_MY_SPAWNS)
-        if(newTarget)
-        {
-          this.TargetId = newTarget.id;
-        }
-      }
-      return ERR_NOT_IN_RANGE;
+  run(creep: Creep): boolean {
+    if (this.Target) {
+      return this.Target.recycleCreep(creep) == OK;
     } else {
-      return OK;
+      let newTarget = creep.pos.findClosestByRange(FIND_MY_SPAWNS)
+      if (newTarget) {
+        this.TargetId = newTarget.id;
+      }
     }
+    return false;
   }
 }

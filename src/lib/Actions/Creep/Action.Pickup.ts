@@ -27,6 +27,10 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
     this.TargetId = target.id;
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
     if (creep instanceof Creep) {
       let target = this.Target;
@@ -38,12 +42,9 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
     throw new Error("Pickup Actions are invalid on Non-Creeps");
   };
 
-  run: (creep: Creep) => ScreepsReturnCode = (creep: RoomObject) => {
-    if (creep instanceof Creep) {
+  run(creep: Creep) : boolean {
       let target = this.Target;
-      return target ? creep.pickup(target) : ERR_INVALID_TARGET;
-    }
-    throw new Error("Pickup Actions are invalid on Non-Creeps");
+      return (target ? creep.pickup(target) : ERR_INVALID_TARGET) == OK;
   };
 
   toJSON: () => string = () => {

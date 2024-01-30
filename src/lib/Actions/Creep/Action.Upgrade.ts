@@ -33,6 +33,10 @@ export class UpgradeAction extends Action {
     }
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete(creep: RoomObject): boolean {
     if (creep instanceof Creep) {
       return creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0;
@@ -42,11 +46,8 @@ export class UpgradeAction extends Action {
 
   cleanup(creep : Creep) : void {};
 
-  run(creep: Creep): ScreepsReturnCode {
-    if (runner instanceof Creep) {
-      let target = this.Target;
-      return target ? runner.upgradeController(target) : ERR_INVALID_TARGET;
-    }
-    throw new Error("Upgrade Actions not applicable to Non-Creeps");
+  run(creep: Creep): boolean {
+    let target = this.Target;
+    return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
   }
 }

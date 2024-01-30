@@ -49,6 +49,10 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     }
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete(creep: RoomObject): boolean {
     if (creep instanceof Creep) {
       let target = this.Target;
@@ -64,21 +68,17 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     //remove(creep.memory.activeReservations, (s) => s === this.ReservationId);
   };
 
-  run(creep: Creep): ScreepsReturnCode {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      let result = target ? creep.repair(target) : ERR_INVALID_TARGET;
-      if(target && result == OK)
+  run(creep: Creep): boolean {
+    let target = this.Target;
+    let result = target ? creep.repair(target) : ERR_INVALID_TARGET;
+    if (target && result == OK) {
+      let thisReservation = Memory.RepairResv[target.id]?.find((r) => r.reservationId == this.ReservationId);
+      if(thisReservation)
       {
-        // let thisReservation = target.room.memory.repairReservations[target.id]?.find((r) => r.reservationId == this.ReservationId);
-        // if(thisReservation)
-        // {
-        //   let creepWorkParts = creep.body.map(bdp => bdp.type).filter(t => t == WORK).length;
-        //   thisReservation.amount = Math.min(0,thisReservation.amount - creepWorkParts * REPAIR_POWER);
-        // }
+        let creepWorkParts = creep.body.map(bdp => bdp.type).filter(t => t == WORK).length;
+        thisReservation.amount = Math.min(0,thisReservation.amount - creepWorkParts * REPAIR_POWER);
       }
-      return result;
     }
-    throw new Error("Repair Actions not applicable to Non-Creeps");
+    return result == OK;
   }
 }

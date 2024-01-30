@@ -43,11 +43,15 @@ export class MoveAction extends Action {
     }
   }
 
+  isValid(creep: Creep): boolean {
+    return creep.body.filter((b) => b.type === MOVE && b.hits > 0).length > 0;
+  }
+
   isComplete(creep: Creep): boolean {
     return creep.pos.inRangeTo(this.Target, this.Range);
   };
 
-  run(creep: Creep): ScreepsReturnCode {
+  run(creep: Creep): boolean {
      //let attemptedRoute = creep.memory._move?.path?.charAt(0);
     let result = creep.moveTo(this.Target,
       {
@@ -73,6 +77,6 @@ export class MoveAction extends Action {
       //   log(1, `${creep.name} was unable to figure out how to shove`);
       // }
     }
-    return result;
+    return result == OK || result == ERR_TIRED;
   }
 }

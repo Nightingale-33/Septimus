@@ -27,6 +27,10 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     this.ResourceType = resource;
   }
 
+  isValid(creep: Creep): boolean {
+    return this.Target !== null;
+  }
+
   isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
     if (creep instanceof Creep) {
       let target = this.Target;
@@ -38,12 +42,9 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     throw new Error("Withdraw Actions are invalid on Non-Creeps");
   };
 
-  run: (creep: Creep) => ScreepsReturnCode = (creep: RoomObject) => {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      return target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET;
-    }
-    throw new Error("Withdraw Actions are invalid on Non-Creeps");
+  run(creep: Creep) : boolean {
+    let target = this.Target;
+    return (target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
 
   toJSON: () => string = () => {
