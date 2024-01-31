@@ -2,6 +2,8 @@ import { log } from "../utils/Logging/Logger";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Province } from "../Province Level/Province";
+import { OwnedControllerMission } from "../Province Level/OwnedControllerMission";
+import { DistanceTransform } from "./RoomPlanning/DistanceTransform";
 
 declare global {
   interface RoomMemory
@@ -17,6 +19,8 @@ export class Prefecture {
 
   Delegations: Delegation[] = [];
 
+  distanceTransformer : DistanceTransform;
+
   RoomName: string;
   get room() : Room {return Game.rooms[this.RoomName];}
 
@@ -25,6 +29,7 @@ export class Prefecture {
   constructor(province: Province, roomName: string) {
     this.province = province;
     this.RoomName = roomName;
+    this.distanceTransformer = new DistanceTransform();
   }
 
   Initialise()
@@ -42,6 +47,30 @@ export class Prefecture {
         {
           delegation.Execute();
         }
+      });
+    }
+
+    if(this.room.controller?.my)
+    {
+      let flagName = this.RoomName + "_" + this.room.controller.id;
+      if(!Game.flags[flagName])
+      {
+        let colour = OwnedControllerMission.GetFlagColours();
+        this.room.controller.pos.createFlag(flagName,colour.primary,colour.secondary);
+      }
+    }
+
+    if(Game.cpu.tickLimit > 250)
+    {
+      if(!this.distanceTransformer.data)
+      {
+        Profile(`${this.RoomName} Distance Transform`, () => {
+          this.distanceTransformer.calculate(this.room.getTerrain());
+        });
+      }
+
+      Profile(`${this.RoomName} display DT`, () => {
+        this.distanceTransformer.displayCalc(this.room.visual);
       });
     }
   }

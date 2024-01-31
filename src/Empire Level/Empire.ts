@@ -6,6 +6,9 @@ import { Mission } from "../lib/Mission/Mission";
 import { ProvinceMissionDefs } from "../lib/Mission/ProvinceMissionDefs";
 import { EmpireMissionDefs } from "../lib/Mission/EmpireMissionDefs";
 import { defaultsDeep } from "lodash";
+import { BuildReservation } from "../lib/Reservations/BuildReservations";
+import { ResourceReservation } from "../lib/Reservations/ResourceReservations";
+import { RepairReservation } from "../lib/Reservations/RepairReservations";
 
 declare global {
   interface Memory {
@@ -15,6 +18,13 @@ declare global {
   interface EmpireMemory {
     Provinces: { [id: string]: ProvinceMemory };
   }
+
+
+    namespace NodeJS {
+      interface Global {
+        ResetEmpire(): void;
+      }
+    }
 }
 
 const defaultsEmpireMemory : EmpireMemory = {
@@ -196,5 +206,28 @@ export class Empire {
         delete this.ActiveMissions[missionFlag];
       }
     }
+
+    BuildReservation.Cleanup();
+    ResourceReservation.Cleanup();
+    RepairReservation.Cleanup();
   }
+}
+
+global.ResetEmpire = function() {
+  for (const creep in Game.creeps) {
+    Game.creeps[creep].suicide();
+  }
+  for (const flag in Game.flags) {
+    Game.flags[flag].remove();
+  }
+
+  Memory.Empire = defaultsEmpireMemory;
+  Memory.flags = {};
+  Memory.creeps = {};
+  Memory.rooms = {};
+  Memory.creepNum = 0;
+  Memory.BuildResv = {};
+  Memory.RepairResv = {};
+  Memory.RsrcResv = {};
+  Memory.powerCreeps = {};
 }

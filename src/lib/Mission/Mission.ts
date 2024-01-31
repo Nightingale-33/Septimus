@@ -29,7 +29,6 @@ export abstract class Mission {
       this.memory.Id = GetRandomId();
     }
     this.empire = global.empire!;
-
   }
 
   abstract run() : void;

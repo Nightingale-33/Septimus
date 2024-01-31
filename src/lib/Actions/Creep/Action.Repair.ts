@@ -1,8 +1,5 @@
-import { all, min, remove } from "lodash";
-//import { AddRepairReservation } from "../../utils/Reservations/RepairReservations";
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { RepairReservation } from "../../Reservations/RepairReservations";
-import { ResourceReservation } from "../../Reservations/ResourceReservations";
 
 export const REPAIR_ID: string = "R";
 
@@ -21,7 +18,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     let reservation : RepairReservation | undefined = undefined;
     if(creep)
     {
-      let reservationAmount = Math.min(0,-1 * Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
+      let reservationAmount = Math.min(0,Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
       reservation = new RepairReservation(creep,structure,reservationAmount);
     }
     super(reservation);

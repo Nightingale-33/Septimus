@@ -1,12 +1,13 @@
 import { Delegation } from "../lib/Delegation";
 import { Province } from "./Province";
 import { Role } from "../lib/Roles/Role";
-import { max, sortBy } from "lodash";
-import { SpawnHarvester } from "../lib/Roles/Role.Harvester";
+import { max, remove } from "lodash";
+import { HARVESTER, SpawnHarvester } from "../lib/Roles/Role.Harvester";
+import { SpawnWorker, WORKER } from "../lib/Roles/Role.Worker";
 
 declare global {
   interface ProvinceMemory {
-    SpawnRequests: { id: string, role: Role, priority: number }[];
+    SpawnRequests: { id: string, role: Role, priority: number ,inProgress: string | undefined }[];
   }
 }
 
@@ -25,25 +26,43 @@ export class Spawner extends Delegation {
   }
 
   Execute(): void {
-    let priorityOrder = this.province.memory.SpawnRequests = sortBy(this.province.memory.SpawnRequests, (request) => request.priority);
+    if(this.province.memory.SpawnRequests.length === 0)
+    {
+      throw new Error("Spawner was executed with no requests");
+    }
+
+    remove(this.province.memory.SpawnRequests, (r) => r.inProgress && Game.creeps[r.inProgress]);
+
+    let availableSpawns = this.province.spawns.filter((s) => !s.spawning);
 
     let spawnedAnything: boolean;
     do {
-      spawnedAnything = false;
-      let topPrio = priorityOrder.shift();
-      if (!topPrio) {
-        throw new Error("Priority order was empty");
+      let available = this.province.memory.SpawnRequests.filter((r) => !r.inProgress);
+      if(available.length == 0)
+      {
+        break;
       }
-      for (const spawn of this.province.spawns) {
-        if(spawn.spawning)
-        {
-          continue;
-        }
+      spawnedAnything = false;
+      let topPrio = max(available,(r) => r.priority);
+      for (const spawn of availableSpawns) {
+        let spawnedName: string | null = null;
         switch (topPrio.role) {
-          case "Harvester":
-            spawnedAnything ||= SpawnHarvester(spawn, topPrio.priority, this.province);
+          case HARVESTER:
+            spawnedName = SpawnHarvester(spawn, topPrio.priority, this.province);
             break;
+          case WORKER:
+            spawnedName = SpawnWorker(spawn,topPrio.priority,this.province);
+            break;
+          default: throw new Error("Attempted to spawn unrecognised Role");
         }
+
+        if(spawnedName)
+        {
+          remove(availableSpawns,(s) => s.id === spawn.id);
+          topPrio.inProgress = spawnedName;
+        }
+
+        spawnedAnything ||= spawnedName !== null;
       }
     } while (spawnedAnything);
 

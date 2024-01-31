@@ -1,9 +1,6 @@
 import { Delegation } from "../lib/Delegation";
 import { Province } from "./Province";
-import { HARVESTER } from "../lib/Roles/Role.Harvester";
-import { any, filter } from "lodash";
-import { MoveAction } from "../lib/Actions/Creep/Action.Move";
-import { HarvestAction } from "../lib/Actions/Creep/Action.Harvest";
+import { filter } from "lodash";
 import { MiningMission } from "./MiningMission";
 
 export class MiningSiteAssigner extends Delegation
@@ -28,7 +25,8 @@ export class MiningSiteAssigner extends Delegation
         if(!miningSites.find((m) => m.source === source.id))
         {
           let flagName = `${this.province.name}_${source.id}`;
-          source.pos.createFlag(flagName,COLOR_GREY,COLOR_YELLOW);
+          let colour = MiningMission.GetFlagColours();
+          source.pos.createFlag(flagName,colour.primary,colour.secondary);
         }
       }
     }

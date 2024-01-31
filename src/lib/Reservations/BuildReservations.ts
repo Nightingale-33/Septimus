@@ -1,36 +1,44 @@
 import { Reservation } from "./Reservation";
+import { remove } from "lodash";
 
 declare global {
   interface Memory {
-    BuildResv: { [id: Id<ConstructionSite>] : BuildReservation[] };
+    BuildResv: { [id: Id<ConstructionSite>]: BuildReservation[] };
   }
 }
 
-export class BuildReservation extends Reservation<Creep,ConstructionSite> {
+export class BuildReservation extends Reservation<Creep, ConstructionSite> {
   amount: number;
 
-  constructor(creep: Creep, cs : ConstructionSite, amount: number) {
-    super(creep,cs);
+  constructor(creep: Creep, cs: ConstructionSite, amount: number) {
+    super(creep, cs);
     this.amount = amount;
   }
 
-  static CheckMemory(target: ConstructionSite): boolean
-  {
-    if(!Memory.BuildResv)
-    {
+  static CheckMemory(target: ConstructionSite): boolean {
+    if (!Memory.BuildResv) {
       Memory.BuildResv = {};
     }
 
-    if(!Memory.BuildResv[target.id])
-    {
+    if (!Memory.BuildResv[target.id]) {
       return false;
     }
 
     return true;
   }
 
-  static GetPostReservationProgress(target: ConstructionSite): number
-  {
+  static AddReservation(reservation: BuildReservation) {
+    if (!Memory.BuildResv[reservation.reserved]) {
+      Memory.BuildResv[reservation.reserved] = [];
+    }
+    if(!Memory.BuildResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId))
+    {
+      Memory.BuildResv[reservation.reserved].push(reservation);
+    }
+
+  }
+
+  static GetPostReservationProgress(target: ConstructionSite): number {
     let progress = target.progress;
 
     if (!this.CheckMemory(target)) {
@@ -45,13 +53,21 @@ export class BuildReservation extends Reservation<Creep,ConstructionSite> {
   }
 
   static Cleanup() {
-    for(const idStr of Object.keys(Memory.RepairResv))
-    {
+    for (const idStr in Memory.BuildResv) {
       let id = idStr as Id<any>;
-      if(!Game.getObjectById(id))
-      {
-        delete Memory.RepairResv[id];
+      if (!Game.getObjectById(id)) {
+        delete Memory.BuildResv[id];
       }
+
+      remove(Memory.BuildResv[id], (reservation) => {
+        let reserver = Game.getObjectById(reservation.reserver);
+        if (!reserver) {
+          return true;
+        }
+        //Check the reserver still has it
+        return !(reserver.memory.activeReservations.find((s) => s === reservation.reservationId));
+
+      });
     }
   }
 

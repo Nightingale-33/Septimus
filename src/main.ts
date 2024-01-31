@@ -32,7 +32,7 @@ export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(() => {
 
   Profile(`Empire Initialisation`, () => global.empire?.Initialise());
 
-  Profile(`Empire Tidy`, () => global.empire?.Run());
+  Profile(`Empire Run`, () => global.empire?.Run());
 
   Profile(`Empire Tidy`, () => global.empire?.Tidy());
 }));

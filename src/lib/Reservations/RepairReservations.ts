@@ -1,36 +1,42 @@
 import { Reservation } from "./Reservation";
+import { remove } from "lodash";
 
 declare global {
   interface Memory {
-    RepairResv: { [id: Id<Structure>] : RepairReservation[] };
+    RepairResv: { [id: Id<Structure>]: RepairReservation[] };
   }
 }
 
-export class RepairReservation extends Reservation<Creep,Structure> {
-  amount : number;
+export class RepairReservation extends Reservation<Creep, Structure> {
+  amount: number;
 
-  constructor(creep: Creep, str : Structure,amount : number) {
-    super(creep,str);
+  constructor(creep: Creep, str: Structure, amount: number) {
+    super(creep, str);
     this.amount = amount;
   }
 
-  static CheckMemory(target: Structure): boolean
-  {
-    if(!Memory.RepairResv)
-    {
+  static CheckMemory(target: Structure): boolean {
+    if (!Memory.RepairResv) {
       Memory.RepairResv = {};
     }
 
-    if(!Memory.RepairResv[target.id])
-    {
+    if (!Memory.RepairResv[target.id]) {
       return false;
     }
 
     return true;
   }
 
-  static GetPostReservationHits(target: Structure): number
-  {
+  static AddReservation(reservation: RepairReservation) {
+    if (!Memory.RepairResv[reservation.reserved]) {
+      Memory.RepairResv[reservation.reserved] = [];
+    }
+    if(!Memory.RepairResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId)) {
+      Memory.RepairResv[reservation.reserved].push(reservation);
+    }
+  }
+
+  static GetPostReservationHits(target: Structure): number {
     let hits = target.hits;
 
     if (!this.CheckMemory(target)) {
@@ -45,13 +51,20 @@ export class RepairReservation extends Reservation<Creep,Structure> {
   }
 
   static Cleanup() {
-    for(const idStr of Object.keys(Memory.RepairResv))
-    {
+    for (const idStr of Object.keys(Memory.RepairResv)) {
       let id = idStr as Id<any>;
-      if(!Game.getObjectById(id))
-      {
+      if (!Game.getObjectById(id)) {
         delete Memory.RepairResv[id];
       }
+
+      remove(Memory.RepairResv[id], (reservation) => {
+        let reserver = Game.getObjectById(reservation.reserver);
+        if (!reserver) {
+          return true;
+        }
+        //Check the reserver still has it
+        return !(reserver.memory.activeReservations.find((s) => s === reservation.reservationId));
+      });
     }
   }
 }

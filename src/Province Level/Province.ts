@@ -7,6 +7,7 @@ import { Empire } from "../Empire Level/Empire";
 import { Spawner } from "./Spawner";
 import { MiningSiteAssigner } from "./MiningSiteAssigner";
 import { Mission } from "../lib/Mission/Mission";
+import { Role } from "../lib/Roles/Role";
 
 declare global {
   interface ProvinceMemory
@@ -46,7 +47,7 @@ export class Province {
   Initialised : boolean = false;
 
   get creeps() : Creep[] {
-    return global.cache.UseValue(() => filter(Game.creeps, (c) => c.memory.Province === this.name),5,"Prov"+this.name+"Creeps");
+    return global.cache.UseValue(() => filter(Game.creeps, (c) => c.memory.Province === this.name),0,"Prov"+this.name+"Creeps");
   }
 
   get sources() : Source[] {
@@ -131,6 +132,15 @@ export class Province {
         log(3,`Mission Flag: ${missionFlag} is no longer active`);
         delete this.ActiveMissions[missionFlag];
       }
+    }
+  }
+
+  RequestCreep(role: Role,requesterId:string, priority:number = 1)
+  {
+    if(!this.memory.SpawnRequests.find((r) => r.id === requesterId && r.role === role))
+    {
+      log(1,`Requesting ${role} for: ${requesterId}`);
+      this.memory.SpawnRequests.push({id: requesterId,role:role,priority:priority,inProgress: undefined});
     }
   }
 }

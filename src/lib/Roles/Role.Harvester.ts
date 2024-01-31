@@ -4,19 +4,19 @@ import { GetCreepMemory, GetLargestBody, SpawnCreep } from "../../utils/SpawnUti
 
 export const HARVESTER = "Harvester";
 
-export function SpawnHarvester(spawn: StructureSpawn,priority: number, province: Province) : boolean
+export function SpawnHarvester(spawn: StructureSpawn,priority: number, province: Province) : string | null
 {
-  const haulerBody = [WORK, CARRY, MOVE];
+  const haulerBody = [WORK,WORK, CARRY, MOVE];
   const haulerBodyAddon = [WORK];
 
-  let largestSlowBody = GetLargestBody(spawn,haulerBody,haulerBodyAddon,SOURCE_HARVEST_PARTS+1,false);
-  let largestBody = GetLargestBody(spawn, haulerBody, haulerBodyAddon, SOURCE_HARVEST_PARTS+1,true);
+  let largestSlowBody = GetLargestBody(spawn,haulerBody,haulerBodyAddon,SOURCE_HARVEST_PARTS,false);
+  let largestBody = GetLargestBody(spawn, haulerBody, haulerBodyAddon, SOURCE_HARVEST_PARTS,true);
   if(largestSlowBody.filter((bdc) => bdc == WORK).length > largestBody.filter((bdc) => bdc == WORK).length)
   {
     largestBody = largestSlowBody;
   }
   if (largestBody.length == 0) {
-    return false;
+    return null;
   }
   return SpawnCreep(spawn, largestBody, GetCreepMemory(HARVESTER,province.name));
 }

@@ -1,6 +1,7 @@
 import { Province } from "../../Province Level/Province";
 import { MiningMission } from "../../Province Level/MiningMission";
 import { ProvinceMission } from "./ProvinceMission";
+import { OwnedControllerMission } from "../../Province Level/OwnedControllerMission";
 
 export class ProvinceMissionDefs {
   static getProvinceMissionFromFlag(flag: Flag, province: Province) : ProvinceMission | null {
@@ -24,6 +25,10 @@ export class ProvinceMissionDefs {
   }
 
   private static getPurpleProvinceMission(flag: Flag, province: Province) : ProvinceMission | null {
+    switch (flag.secondaryColor)
+    {
+      case COLOR_WHITE: return new OwnedControllerMission(flag,province);
+    }
     return null;
   }
 

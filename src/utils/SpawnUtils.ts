@@ -54,21 +54,27 @@ export function GetCreepMemory(role: Role, provinceName: string): CreepMemory
   return {role: role, Province: provinceName, activeReservations: [], plan: new Plan([]), missionId: undefined}
 }
 
-export function SpawnCreep(spawn : StructureSpawn, bodyToSpawn: BodyPartConstant[], memory: CreepMemory)
+export function SpawnCreep(spawn : StructureSpawn, bodyToSpawn: BodyPartConstant[], memory: CreepMemory): string | null
 {
   if (!spawn.isActive()) {
     log(1, "Attempted to spawn via inactive spawn");
-    return false;
+    return null;
   }
 
   if (spawn.spawning) {
     log(5, "Spawner is currently busy");
-    return false;
+    return null;
   }
 
-  Memory.creepNum++;
-  let result = spawn.spawnCreep(bodyToSpawn, memory.role + Memory.creepNum, {
+  let creepName = memory.role + Memory.creepNum;
+  let result = spawn.spawnCreep(bodyToSpawn, creepName, {
     memory: memory
   });
-  return result == OK;
+  if(result == OK)
+  {
+    Memory.creepNum++;
+    log(1,`Spawn Spawning: ${creepName}`);
+    return creepName;
+  }
+  return null;
 }
