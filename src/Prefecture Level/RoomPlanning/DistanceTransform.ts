@@ -4,8 +4,6 @@ export class DistanceTransform {
 
   data: number[] | undefined;
 
-  visual : string | undefined;
-
   getDist(x:number,y:number) : number
   {
     if(!this.data)
@@ -93,11 +91,6 @@ export class DistanceTransform {
       throw new Error("Data has not been calculated");
     }
 
-    if(this.visual)
-    {
-      visual.clear();
-      visual.import(this.visual);
-    }
     let colour = (v: number): string => {
       let proportion = Math.min(1,Math.max (v / 10,0));
       let green = Math.floor((Math.min(proportion, 0.5) * 2) * 255).toString(16).padStart(2, "0");
@@ -117,7 +110,6 @@ export class DistanceTransform {
         visual.rect(x - 0.5, y - 0.5, 1, 1, { fill: colour(value), strokeWidth: 0, opacity: opacity(value) });
       }
     }
-    this.visual = visual.export();
   }
 
   private static CDT_f(x: number, i: number, g_i: number) {
