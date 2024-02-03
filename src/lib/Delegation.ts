@@ -2,6 +2,8 @@
 export abstract class Delegation {
   abstract name:string;
 
+  abstract Id:string;
+
   abstract ShouldExecute() : boolean;
 
   abstract Execute(): void;

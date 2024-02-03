@@ -39,11 +39,6 @@ export class DismantleAction extends Action {
     return this.Target !== null;
   }
 
-  isComplete(creep: Creep) : boolean
-  {
-    return creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 || (!Game.getObjectById(this.TargetId));
-  };
-
   cleanup(creep : Creep) : void {};
 
   run(creep: Creep): boolean {

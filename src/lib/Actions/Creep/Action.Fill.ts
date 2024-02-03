@@ -31,19 +31,8 @@ export class FillAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getUsedCapacity(this.ResourceType) > 0 && (this.Target.store?.getFreeCapacity(this.ResourceType) ?? 0) > 0;
   }
-
-  isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      if (!target) {
-        return true;
-      }
-      return creep.store.getUsedCapacity(this.ResourceType) == 0 || ResourceReservation.GetPostReservationStore(target,this.ResourceType).free <= 0;
-    }
-    throw new Error("Fill Actions are invalid on Non-Creeps");
-  };
 
   run(creep: Creep) : boolean {
     let target = this.Target;

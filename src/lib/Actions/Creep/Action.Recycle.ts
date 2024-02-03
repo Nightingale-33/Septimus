@@ -36,10 +36,6 @@ export class RecycleAction extends Action {
     return this.Target !== null;
   }
 
-  isComplete(_: RoomObject): boolean {
-    return false;
-  };
-
   cleanup(creep : Creep) : void {};
 
   run(creep: Creep): boolean {

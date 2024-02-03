@@ -47,19 +47,8 @@ export class RepairAction extends ReservingAction<RepairReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 && this.Target.hits < this.Target.hitsMax;
   }
-
-  isComplete(creep: RoomObject): boolean {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      if (!target) {
-        return true;
-      }
-      return creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || target.hits == target.hitsMax || target.hitsMax <= 0;
-    }
-    throw new Error("Repair Actions not applicable to Non-Creeps");
-  };
 
   cleanup(creep : Creep) : void {
     //remove(creep.memory.activeReservations, (s) => s === this.ReservationId);

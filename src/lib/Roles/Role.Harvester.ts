@@ -4,7 +4,7 @@ import { GetCreepMemory, GetLargestBody, SpawnCreep } from "../../utils/SpawnUti
 
 export const HARVESTER = "Harvester";
 
-export function SpawnHarvester(spawn: StructureSpawn,priority: number, province: Province) : string | null
+export function SpawnHarvester(spawn: StructureSpawn, province: Province) : string | null
 {
   const haulerBody = [WORK,WORK, CARRY, MOVE];
   const haulerBodyAddon = [WORK];

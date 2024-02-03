@@ -4,7 +4,6 @@ export abstract class Action {
   cleanup(creep: Creep):void {}
 
   abstract isValid(creep: Creep): boolean;
-  abstract isComplete(creep: Creep): boolean;
 
   abstract run(creep: Creep) : boolean;
 }

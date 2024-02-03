@@ -1,7 +1,7 @@
 import { Province } from "../../Province Level/Province";
-import { MiningMission } from "../../Province Level/MiningMission";
+import { MiningMission } from "../../Province Level/Missions/MiningMission";
 import { ProvinceMission } from "./ProvinceMission";
-import { OwnedControllerMission } from "../../Province Level/OwnedControllerMission";
+import { OwnedControllerMission } from "../../Province Level/Missions/OwnedControllerMission";
 
 export class ProvinceMissionDefs {
   static getProvinceMissionFromFlag(flag: Flag, province: Province) : ProvinceMission | null {

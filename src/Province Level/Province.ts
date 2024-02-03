@@ -4,10 +4,15 @@ import { defaultsDeep, filter, flatten } from "lodash";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Empire } from "../Empire Level/Empire";
-import { Spawner } from "./Spawner";
-import { MiningSiteAssigner } from "./MiningSiteAssigner";
+import { Spawner } from "./Delegations/Spawner";
+import { MiningSiteAssigner } from "./Delegations/MiningSiteAssigner";
 import { Mission } from "../lib/Mission/Mission";
 import { Role } from "../lib/Roles/Role";
+import { TRACE_FLAG } from "../utils/Logging/FlagDecs";
+import { IdleAction } from "../lib/Actions/Creep/Action.Idle";
+import { LogisticsManager } from "./Delegations/LogisticsManager";
+import { MiningMission } from "./Missions/MiningMission";
+import { BuildingManager } from "./Delegations/BuildingManager";
 
 declare global {
   interface ProvinceMemory
@@ -18,18 +23,20 @@ declare global {
   interface CreepMemory
   {
     Province: string;
+    assignmentId: string | undefined;
+    assignmentPriority: number | undefined;
   }
 }
 
 const defaultsProvinceMemory : ProvinceMemory = {
   AttachedPrefectures: [],
-  SpawnRequests: []
 }
 
 export class Province {
   Empire: Empire;
 
   ActiveMissions: {[id: string] : Mission} = {};
+  get MiningSites() : MiningMission[] { return global.cache.UseValue(() => Object.values(this.ActiveMissions).filter((m) : m is MiningMission => m instanceof MiningMission),0,`${this.name+"_MiningSites"}`); }
 
   Prefectures: Prefecture[];
   Capital: Prefecture;
@@ -42,7 +49,11 @@ export class Province {
     return this.Empire.memory.Provinces[this.name];
   }
 
-  Delegations: Delegation[] = [];
+  get Delegations(): Delegation[] {return this.GeneralDelegations.concat([this.MiningMan,this.Logistics,this.Spawning]);};
+  Spawning: Spawner;
+  MiningMan: MiningSiteAssigner;
+  Logistics: LogisticsManager;
+  GeneralDelegations: Delegation[] = [];
 
   Initialised : boolean = false;
 
@@ -88,8 +99,10 @@ export class Province {
       prefecture.Initialise();
     }
 
-    this.Delegations.push(new MiningSiteAssigner(this));
-    this.Delegations.push(new Spawner(this));
+    this.MiningMan = new MiningSiteAssigner(this);
+    this.Spawning = new Spawner(this);
+    this.Logistics = new LogisticsManager(this);
+    this.GeneralDelegations.push(new BuildingManager(this));
 
     this.Initialised = true;
     log(1,`Province at: ${this.Capital.RoomName} Initialised`);
@@ -133,14 +146,75 @@ export class Province {
         delete this.ActiveMissions[missionFlag];
       }
     }
+
+    for(const creep of this.creeps)
+    {
+      if(creep.memory.plan.isEmpty() && creep.memory.assignmentId !== undefined)
+      {
+        log(1,`Creep: ${creep.name} was idle and is thus having its assignment cleared`);
+        delete creep.memory.assignmentId;
+      }
+    }
   }
 
-  RequestCreep(role: Role,requesterId:string, priority:number = 1)
+  RequestCreeps(role: Role, amount: number, requestId : string, requestPriority: number, deRegisterExcess : boolean = true, requestSpawn : boolean = true) : Creep[]
   {
-    if(!this.memory.SpawnRequests.find((r) => r.id === requesterId && r.role === role))
+    //Gather pre-assigned
+    let assignedCreeps : Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId);;
+    if(deRegisterExcess && assignedCreeps.length > amount)
     {
-      log(1,`Requesting ${role} for: ${requesterId}`);
-      this.memory.SpawnRequests.push({id: requesterId,role:role,priority:priority,inProgress: undefined});
+      //Trim the excess
+      assignedCreeps.slice(amount).forEach((c) => delete c.memory.assignmentId);
+      assignedCreeps = assignedCreeps.slice(0,amount);
     }
+
+    //All done
+    if(assignedCreeps.length >= amount)
+    {
+      return assignedCreeps;
+    }
+
+    //Claim existing
+    while (assignedCreeps.length < amount) {
+      let unassignedCreep = this.creeps.find((c) =>
+        c.memory.role === role && c.memory.assignmentId === undefined);
+      if (unassignedCreep) {
+        assignedCreeps.push(unassignedCreep);
+        unassignedCreep.memory.assignmentId = requestId;
+        unassignedCreep.memory.assignmentPriority = requestPriority;
+        log(1, `Claiming ${unassignedCreep.memory.role}: ${unassignedCreep.name} in ${this.name}`);
+      } else {
+        let lessBusyCreep = this.creeps.find((c) =>
+        c.memory.role === role && (c.memory.assignmentPriority ?? 0) < requestPriority);
+        if(lessBusyCreep) {
+          assignedCreeps.push(lessBusyCreep);
+          lessBusyCreep.memory.assignmentId = requestId;
+          lessBusyCreep.memory.assignmentPriority = requestPriority;
+          log(1, `Claiming Pre-Assigned ${lessBusyCreep.memory.role}: ${lessBusyCreep.name} in ${this.name}`);
+        } else
+        {
+          log(TRACE_FLAG,`Unable to find free ${role} in ${this.name}`);
+          break;
+        }
+      }
+    }
+
+    //
+
+    //Acquired enough
+    if(assignedCreeps.length >= amount || !requestSpawn)
+    {
+      return assignedCreeps;
+    }
+
+    //Put in Spawn Requests
+    //Request additional
+    let difference = amount - assignedCreeps.length;
+    if (difference < 1) {
+      throw new Error("Somehow got to Spawn Requests without needing any");
+    }
+    this.Spawning.RequestCreepSpawn(role, requestId, requestPriority);
+
+    return assignedCreeps;
   }
 }

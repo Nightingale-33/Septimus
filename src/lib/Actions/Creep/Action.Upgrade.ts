@@ -34,15 +34,8 @@ export class UpgradeAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
   }
-
-  isComplete(creep: RoomObject): boolean {
-    if (creep instanceof Creep) {
-      return creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0;
-    }
-    throw new Error("Upgrade Actions not applicable to Non-Creeps");
-  };
 
   cleanup(creep : Creep) : void {};
 

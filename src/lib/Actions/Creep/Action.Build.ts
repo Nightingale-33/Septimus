@@ -46,16 +46,8 @@ export class BuildAction extends ReservingAction<BuildReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && this.Target.progress < this.Target.progressTotal;
   }
-
-  isComplete(creep: Creep): boolean {
-    let target = this.Target;
-    if (!target) {
-      return true;
-    }
-    return creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || target.progress >= target.progressTotal;
-  };
 
   run(creep: Creep): boolean {
     let target = this.Target;

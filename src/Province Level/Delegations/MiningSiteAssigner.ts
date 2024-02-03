@@ -1,11 +1,13 @@
-import { Delegation } from "../lib/Delegation";
-import { Province } from "./Province";
+import { Delegation } from "../../lib/Delegation";
+import { Province } from "../Province";
 import { filter } from "lodash";
-import { MiningMission } from "./MiningMission";
+import { MiningMission } from "../Missions/MiningMission";
 
 export class MiningSiteAssigner extends Delegation
 {
   name: string = "MiningSiteAssigner_";
+
+  get Id() : string {return this.province.name + "_MiningSiteAssigner"};
 
   province: Province;
 

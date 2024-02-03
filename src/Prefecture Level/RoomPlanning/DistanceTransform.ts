@@ -1,8 +1,19 @@
 import { ROOM_BOUNDARY_VALUES } from "../../Constants";
 
+declare global {
+  // Syntax for adding proprties to `global` (ex "global.log")
+  namespace NodeJS {
+    interface Global {
+      DisplayDT(roomName : string, enabled: boolean):boolean;
+    }
+  }
+}
+
 export class DistanceTransform {
 
   data: number[] | undefined;
+
+  visual: string | undefined = undefined;
 
   getDist(x:number,y:number) : number
   {
@@ -85,11 +96,19 @@ export class DistanceTransform {
     this.data = dt;
   }
 
-  displayCalc(visual : RoomVisual) {
+  display(roomVisual : RoomVisual) {
     if(!this.data)
     {
       throw new Error("Data has not been calculated");
     }
+
+    if(this.visual)
+    {
+      roomVisual.import(this.visual);
+      return;
+    }
+
+    let visual = new RoomVisual();
 
     let colour = (v: number): string => {
       let proportion = Math.min(1,Math.max (v / 10,0));
@@ -110,6 +129,9 @@ export class DistanceTransform {
         visual.rect(x - 0.5, y - 0.5, 1, 1, { fill: colour(value), strokeWidth: 0, opacity: opacity(value) });
       }
     }
+
+    this.visual = visual.export();
+    roomVisual.import(this.visual);
   }
 
   private static CDT_f(x: number, i: number, g_i: number) {
@@ -138,4 +160,11 @@ export class DistanceTransform {
     return roomMatrix;
   }
 
+}
+
+export const DTDisplayRooms: {[id:string] : boolean} = {};
+
+global.DisplayDT = function(roomName : string, enabled: boolean):boolean {
+  DTDisplayRooms[roomName] = enabled;
+  return enabled;
 }

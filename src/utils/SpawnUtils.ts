@@ -51,7 +51,7 @@ export function GetLargestBody(spawn : StructureSpawn, baseBody: BodyPartConstan
 
 export function GetCreepMemory(role: Role, provinceName: string): CreepMemory
 {
-  return {role: role, Province: provinceName, activeReservations: [], plan: new Plan([]), missionId: undefined}
+  return {role: role, Province: provinceName, activeReservations: [], plan: new Plan([]), assignmentId: undefined, assignmentPriority: undefined}
 }
 
 export function SpawnCreep(spawn : StructureSpawn, bodyToSpawn: BodyPartConstant[], memory: CreepMemory): string | null

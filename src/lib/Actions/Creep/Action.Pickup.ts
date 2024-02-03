@@ -28,19 +28,8 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getFreeCapacity(this.Target.resourceType) > 0 && this.Target.amount > 0;
   }
-
-  isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      if (!target) {
-        return true;
-      }
-      return creep.store.getFreeCapacity(target.resourceType) == 0 || target.amount == 0;
-    }
-    throw new Error("Pickup Actions are invalid on Non-Creeps");
-  };
 
   run(creep: Creep) : boolean {
       let target = this.Target;

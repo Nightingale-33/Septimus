@@ -2,8 +2,8 @@ import { log } from "../utils/Logging/Logger";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Province } from "../Province Level/Province";
-import { OwnedControllerMission } from "../Province Level/OwnedControllerMission";
-import { DistanceTransform } from "./RoomPlanning/DistanceTransform";
+import { OwnedControllerMission } from "../Province Level/Missions/OwnedControllerMission";
+import { DistanceTransform, DTDisplayRooms } from "./RoomPlanning/DistanceTransform";
 
 declare global {
   interface RoomMemory
@@ -69,9 +69,10 @@ export class Prefecture {
         });
       }
 
-      Profile(`${this.RoomName} display DT`, () => {
-        this.distanceTransformer.displayCalc(this.room.visual);
-      });
+      if(DTDisplayRooms[this.RoomName])
+      {
+        this.distanceTransformer.display(this.room.visual);
+      }
     }
   }
 }

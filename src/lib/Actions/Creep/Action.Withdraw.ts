@@ -28,19 +28,8 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0;
   }
-
-  isComplete: (runner: RoomObject) => boolean = (creep: RoomObject) => {
-    if (creep instanceof Creep) {
-      let target = this.Target;
-      if (!target) {
-        return true;
-      }
-      return creep.store.getFreeCapacity(this.ResourceType) == 0 || ResourceReservation.GetPostReservationStore(target,this.ResourceType).used <= 0;
-    }
-    throw new Error("Withdraw Actions are invalid on Non-Creeps");
-  };
 
   run(creep: Creep) : boolean {
     let target = this.Target;

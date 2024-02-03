@@ -2,12 +2,6 @@
 import { Empire } from "../../Empire Level/Empire";
 import { GetRandomId } from "../../utils/StringUtils";
 
-declare global {
-  interface CreepMemory {
-    missionId: string | undefined;
-  }
-}
-
 export interface MissionMemory extends FlagMemory {
   Id: string;
 }
@@ -17,6 +11,8 @@ export abstract class Mission {
   pos: RoomPosition;
   empire: Empire;
   flag: Flag;
+
+
 
   protected constructor(flag : Flag) {
     this.flag = flag;

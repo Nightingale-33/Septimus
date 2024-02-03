@@ -1,26 +1,26 @@
-import { ProvinceMission, ProvinceMissionMemory } from "../lib/Mission/ProvinceMission";
-import { Province } from "./Province";
+import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
+import { Province } from "../Province";
 import { defaultsDeep, min } from "lodash";
-import { WORKER } from "../lib/Roles/Role.Worker";
-import { log } from "../utils/Logging/Logger";
-import { MoveAction } from "../lib/Actions/Creep/Action.Move";
-import { UpgradeAction } from "../lib/Actions/Creep/Action.Upgrade";
-import { ResourceReservation } from "../lib/Reservations/ResourceReservations";
-import { WithdrawAction } from "../lib/Actions/Creep/Action.Withdraw";
-import { PickupAction } from "../lib/Actions/Creep/Action.Pickup";
+import { WORKER } from "../../lib/Roles/Role.Worker";
+import { log } from "../../utils/Logging/Logger";
+import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
+import { UpgradeAction } from "../../lib/Actions/Creep/Action.Upgrade";
+import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
+import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
+import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
+import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 
 interface OwnedControllerMemory extends ProvinceMissionMemory {
 }
 
 const defaultOwnedControllerMemory : OwnedControllerMemory = {
   Id: "",
-  assignedCreeps: []
 };
 
 export class OwnedControllerMission extends ProvinceMission {
   memory: OwnedControllerMemory;
 
-  priority:number = 3;
+  priority:number = 1;
 
   controllerId : Id<StructureController>;
 
@@ -43,9 +43,12 @@ export class OwnedControllerMission extends ProvinceMission {
       return;
     }
 
-    let creeps = this.RequestCreeps({"Worker": 1});
+    let requestAmount = controller.level;
+    let requestPriority = controller.ticksToDowngrade < 2500 ? 50 : this.priority;
 
-    for(const creep of creeps[WORKER])
+    let creeps = this.province.RequestCreeps(WORKER, requestAmount,this.memory.Id,requestPriority,false,false);
+
+    for(const creep of creeps)
     {
       //Behaviour logic
       let plan = creep.memory.plan;
@@ -102,6 +105,11 @@ export class OwnedControllerMission extends ProvinceMission {
 
         let upgrade = new UpgradeAction(controller);
         plan.append(upgrade);
+      }
+
+      if(plan.isEmpty())
+      {
+        plan.append(new IdleAction());
       }
     }
   }

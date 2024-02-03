@@ -24,9 +24,6 @@ export class IdleAction extends Action {
   isValid(creep: Creep): boolean {
     return true;
   }
-  isComplete(_: RoomObject): boolean {
-    return true;
-  };
 
   run(creep: Creep): boolean {
     let Direction = Math.floor(Math.random() * 57);

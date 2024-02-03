@@ -1,17 +1,20 @@
-import { HARVESTER } from "../lib/Roles/Role.Harvester";
-import { MoveAction } from "../lib/Actions/Creep/Action.Move";
-import { HarvestAction } from "../lib/Actions/Creep/Action.Harvest";
-import { defaultsDeep } from "lodash";
-import { ProvinceMission, ProvinceMissionMemory } from "../lib/Mission/ProvinceMission";
-import { Province } from "./Province";
-import { BuildAction } from "../lib/Actions/Creep/Action.Build";
-import { RepairAction } from "../lib/Actions/Creep/Action.Repair";
+import { HARVESTER } from "../../lib/Roles/Role.Harvester";
+import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
+import { HarvestAction } from "../../lib/Actions/Creep/Action.Harvest";
+import { countBy, defaultsDeep, flatten, sortBy } from "lodash";
+import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
+import { Province } from "../Province";
+import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
+import { RepairAction } from "../../lib/Actions/Creep/Action.Repair";
+import { SOURCE_HARVEST_PARTS } from "../../Constants";
+import { log } from "../../utils/Logging/Logger";
+import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
+import { move } from "screeps-cartographer";
 
 interface MiningSiteMemory extends ProvinceMissionMemory {
 }
 
 const defaultMiningSiteMemory : MiningSiteMemory = {
-  assignedCreeps: [],
   Id: "",
 };
 
@@ -79,11 +82,16 @@ export class MiningMission extends ProvinceMission
   }
 
   run() : void {
-    let creeps = this.RequestCreeps({ "Harvester": 1 });
-    if(creeps[HARVESTER].length === 0)
-    {
-      return;
-    }
+    let sufficientWorkParts = (hs : Creep[]) => flatten(hs.map((c) => c.body.map((bpd) => bpd.type).filter((bt) : bt is WORK => bt === WORK))).length >= SOURCE_HARVEST_PARTS;
+
+    let creeps: Creep[] = [];
+    let creepCount = 0;
+    let requestAmount = 0;
+    do {
+      requestAmount++
+      creepCount = creeps.length;
+      creeps = this.province.RequestCreeps(HARVESTER, requestAmount, this.memory.Id, this.priority / requestAmount, false);
+    } while(!sufficientWorkParts(creeps) && creeps.length > creepCount);
 
     if(!this.container)
     {
@@ -94,8 +102,19 @@ export class MiningMission extends ProvinceMission
       }
     }
 
-    for (const creep of creeps[HARVESTER])
+    //Deliberately (b - a) to force descending order
+    creeps.sort((a,b) => countBy(b.body,(bpd) => bpd.type)[WORK] - countBy(a.body,(bpd) => bpd.type)[WORK])
+      .sort((a,b) => a.pos.getRangeTo(this.miningPos) - b.pos.getRangeTo(this.miningPos));
+
+    let miningPosClaimed = false;
+    for (const creep of creeps)
     {
+      let onMiningPos = false;
+      if(creep.pos.isEqualTo(this.miningPos))
+      {
+        miningPosClaimed = true;
+        onMiningPos = true;
+      }
       let plan = creep.memory.plan;
       if(!plan.isEmpty())
       {
@@ -112,6 +131,19 @@ export class MiningMission extends ProvinceMission
             {
               let repair = new RepairAction(container,creep);
               plan.prepend(repair);
+            } else if(!onMiningPos)
+            {
+              let adjacent = true;
+              if(!creep.pos.isNearTo(this.miningPos))
+              {
+                adjacent = false;
+              }
+              let move = new MoveAction(this.miningPos,1);
+              let deposit = new FillAction(container,RESOURCE_ENERGY,creep);
+              let returnMove = new MoveAction(creep.pos,0,true);
+              if(!adjacent) {plan.prepend(returnMove);}
+              plan.prepend(deposit);
+              if(!adjacent) {plan.prepend(move);}
             }
           }
 
@@ -121,8 +153,17 @@ export class MiningMission extends ProvinceMission
 
       if(!creep.pos.isNearTo(this.pos))
       {
-        let move = new MoveAction(this.miningPos,0,true);
-        plan.append(move);
+        if(!miningPosClaimed)
+        {
+          let move = new MoveAction(this.miningPos,0,true);
+          plan.append(move);
+          miningPosClaimed = true;
+        } else
+        {
+          let move = new MoveAction(this.pos,1,false);
+          plan.append(move);
+        }
+
       }
 
       let harvest = new HarvestAction(this.source);

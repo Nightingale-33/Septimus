@@ -1,5 +1,6 @@
 import { Action } from "../../Action";
 import { all } from "lodash";
+import { moveTo } from "screeps-cartographer";
 
 export const HARVEST_ID: string = "H";
 
@@ -31,22 +32,17 @@ export class HarvestAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null;
+    return this.Target !== null && creep.pos.isNearTo(this.Target.pos) && (this.Target instanceof  Source ? this.Target.energy > 0 : this.Target.mineralAmount > 0);
   }
-
-  isComplete(creep: Creep): boolean {
-    let source = Game.getObjectById(this.TargetId);
-    let depleted = false;
-    if (source instanceof Source) {
-      depleted = source.energy <= 0;
-    } else if (source instanceof Mineral) {
-      depleted = source.mineralAmount <= 0;
-    }
-    return depleted;
-  };
 
   run(creep: Creep): boolean {
     let target = this.Target;
-    return (target ? creep.harvest(target) : ERR_INVALID_TARGET) === OK;
+    if(!target)
+    {
+      return false;
+    }
+    //Stay the fuck there and don't move
+    moveTo(creep,creep.pos,{priority:1000});
+    return creep.harvest(target) === OK;
   }
 }

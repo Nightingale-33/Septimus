@@ -2,6 +2,7 @@ import { Action } from "../../Action";
 import { all, any, isNumber, parseInt } from "lodash";
 import { GetPositionFromDirection } from "../../../utils/MovementUtils";
 import { log } from "../../../utils/Logging/Logger";
+import { moveTo } from "screeps-cartographer"
 
 export const MOVE_ID: string = "M";
 
@@ -44,39 +45,11 @@ export class MoveAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return creep.body.filter((b) => b.type === MOVE && b.hits > 0).length > 0;
+    return creep.body.filter((b) => b.type === MOVE && b.hits > 0).length > 0 && creep.pos.getRangeTo(this.Target) > this.Range;
   }
 
-  isComplete(creep: Creep): boolean {
-    return creep.pos.inRangeTo(this.Target, this.Range);
-  };
-
   run(creep: Creep): boolean {
-     //let attemptedRoute = creep.memory._move?.path?.charAt(0);
-    let result = creep.moveTo(this.Target,
-      {
-        range: this.Range,
-        reusePath: Math.max(creep.pos.getRangeTo(this.Target) * 0.75, 5),
-        ignoreCreeps: (creep.pos.findClosestByRange(FIND_CREEPS)?.pos.getRangeTo(creep.pos) ?? Infinity) > 2,
-        visualizePathStyle: {}
-      });
-    if (result != OK && result != ERR_TIRED && result != ERR_BUSY && this.Shove) {
-      log(1, `Shoving Creep: ${creep.name} has error: ${result} on movement`);
-    }
-    if (result == ERR_NO_PATH && this.Shove) {
-      // //Consider shoving logic
-      // if (attemptedRoute) {
-      //   let nextDirNum = parseInt(attemptedRoute);
-      //   let nextPos = GetPositionFromDirection(creep.pos, nextDirNum);
-      //   let occupyingCreeps = nextPos.lookFor(LOOK_CREEPS);
-      //   for (const inTheWay of occupyingCreeps) {
-      //     log(1, `Shoving: ${inTheWay.name} out of the way of ${creep.name}`);
-      //     inTheWay.memory.plan.Steps.unshift(new MoveAction(creep.pos));
-      //   }
-      // } else {
-      //   log(1, `${creep.name} was unable to figure out how to shove`);
-      // }
-    }
+    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? 500 : 1});
     return result == OK || result == ERR_TIRED;
   }
 }

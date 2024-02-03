@@ -33,29 +33,32 @@ Creep.prototype.checkPlan = function()
 
 Creep.prototype.executePlan = function()
 {
-    if(!this.memory.plan.isEmpty())
+    while(!this.memory.plan.isEmpty())
     {
       let step = this.memory.plan.Steps[0];
-      let result = step.run(this);
-      //Todo: Use results to try and multi-task
-      if(step.isComplete(this))
+      if(!step.isValid(this))
       {
         let completedStep = this.memory.plan.Steps.shift();
         if(completedStep)
         {
           completedStep.cleanup(this);
         }
-      }
-
-      if(CHATTY)
+      } else
       {
-        let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
-        if (this.memory.plan.Steps.length > 3) {
-          chatPlan += "+";
-        }
-        this.say(chatPlan);
+        let result = step.run(this);
+        //Todo: Use results to try and multi-task
+        break;
       }
     }
+
+  if(CHATTY)
+  {
+    let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
+    if (this.memory.plan.Steps.length > 3) {
+      chatPlan += "+";
+    }
+    this.say(chatPlan);
+  }
 }
 
 export class Plan {

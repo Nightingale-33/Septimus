@@ -5,6 +5,7 @@ import { Empire } from "./Empire Level/Empire";
 import { MemHackWrapLoop } from "./utils/Memory/MemHack";
 import { Profile } from "./utils/Profiler/SimpleProfile";
 import { CacheManager } from "./utils/CacheManager";
+import { CartographerWrapLoop } from "./utils/Movement/MovementWrapper";
 
 console.log("GLOBAL RESET");
 
@@ -22,7 +23,7 @@ global.cache = new CacheManager();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(() => {
+export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(() => {
   log(TIME_FLAG,`Current game tick is ${Game.time}`);
 
   if(!global.empire)
@@ -35,4 +36,4 @@ export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(() => {
   Profile(`Empire Run`, () => global.empire?.Run());
 
   Profile(`Empire Tidy`, () => global.empire?.Tidy());
-}));
+})));

@@ -7,6 +7,8 @@ interface CacheItem<T> {
 
 export const Cache_Manager_Name = "Cache";
 export class CacheManager implements Delegation {
+    Id : string  = Cache_Manager_Name;
+
     ShouldExecute(): boolean {
         return Object.keys(this.CacheItems).length > 0;
     }

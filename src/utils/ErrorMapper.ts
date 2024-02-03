@@ -68,6 +68,7 @@ export class ErrorMapper {
     return outStack;
   }
 
+  static errorCount = 0;
   public static wrapLoop(loop: () => void): () => void {
     return () => {
       try {
@@ -85,6 +86,12 @@ export class ErrorMapper {
         } else {
           // can't handle it
           throw e;
+        }
+        ErrorMapper.errorCount++;
+        if(ErrorMapper.errorCount >= 5 && Game.cpu.halt)
+        {
+          console.log("Resetting due to error");
+          Game.cpu.halt();
         }
       }
     };
