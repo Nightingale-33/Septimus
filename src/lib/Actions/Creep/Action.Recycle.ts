@@ -49,4 +49,8 @@ export class RecycleAction extends Action {
     }
     return false;
   }
+
+  ApproxTimeLeft(creep: Creep): number {
+    return 0;
+  }
 }

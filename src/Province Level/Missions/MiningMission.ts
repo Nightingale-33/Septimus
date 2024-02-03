@@ -10,6 +10,7 @@ import { SOURCE_HARVEST_PARTS } from "../../Constants";
 import { log } from "../../utils/Logging/Logger";
 import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
 import { move } from "screeps-cartographer";
+import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 
 interface MiningSiteMemory extends ProvinceMissionMemory {
 }
@@ -116,6 +117,10 @@ export class MiningMission extends ProvinceMission
         onMiningPos = true;
       }
       let plan = creep.memory.plan;
+      if(plan.peek() instanceof IdleAction)
+      {
+        plan.clear(creep);
+      }
       if(!plan.isEmpty())
       {
         if(creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && this.container)
@@ -164,6 +169,13 @@ export class MiningMission extends ProvinceMission
           plan.append(move);
         }
 
+      }
+
+      let source = Game.getObjectById(this.source);
+      if(source && source.energy === 0)
+      {
+        plan.prepend(new IdleAction());
+        continue;
       }
 
       let harvest = new HarvestAction(this.source);

@@ -45,4 +45,8 @@ export class DismantleAction extends Action {
     let target = this.Target;
     return (target ? creep.dismantle(target) : ERR_INVALID_TARGET) == OK;
   }
+
+  ApproxTimeLeft(creep: Creep): number {
+    throw new Error("Approx Time not calculated for Dismantle");
+  }
 }

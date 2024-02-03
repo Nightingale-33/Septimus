@@ -28,7 +28,7 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getFreeCapacity(this.Target.resourceType) > 0 && this.Target.amount > 0;
+    return this.Target !== null && creep.pos.isNearTo(this.Target) && creep.store.getFreeCapacity(this.Target.resourceType) > 0 && this.Target.amount > 0;
   }
 
   run(creep: Creep) : boolean {
@@ -54,5 +54,9 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
       return pickupAction;
     }
     return null;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    return 1;
   }
 }

@@ -31,7 +31,7 @@ export class FillAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getUsedCapacity(this.ResourceType) > 0 && (this.Target.store?.getFreeCapacity(this.ResourceType) ?? 0) > 0;
+    return this.Target !== null && creep.pos.isNearTo(this.Target) && creep.store.getUsedCapacity(this.ResourceType) > 0 && (this.Target.store?.getFreeCapacity(this.ResourceType) ?? 0) > 0;
   }
 
   run(creep: Creep) : boolean {
@@ -57,5 +57,9 @@ export class FillAction extends ReservingAction<ResourceReservation> {
       return fillAction;
     }
     return null;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    return 1;
   }
 }

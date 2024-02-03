@@ -43,10 +43,12 @@ export class OwnedControllerMission extends ProvinceMission {
       return;
     }
 
+    let creeps = this.province.RequestCreeps(WORKER,1,this.memory.Id,this.priority,false,true);
+
     let requestAmount = controller.level;
     let requestPriority = controller.ticksToDowngrade < 2500 ? 50 : this.priority;
 
-    let creeps = this.province.RequestCreeps(WORKER, requestAmount,this.memory.Id,requestPriority,false,false);
+    creeps = this.province.RequestCreeps(WORKER, requestAmount,this.memory.Id,requestPriority,false,false);
 
     for(const creep of creeps)
     {

@@ -1,5 +1,6 @@
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { RepairReservation } from "../../Reservations/RepairReservations";
+import { countBy } from "lodash";
 
 export const REPAIR_ID: string = "R";
 
@@ -47,7 +48,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 && this.Target.hits < this.Target.hitsMax;
+    return this.Target !== null && creep.pos.inRangeTo(this.Target,3) && creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 && this.Target.hits < this.Target.hitsMax;
   }
 
   cleanup(creep : Creep) : void {
@@ -66,5 +67,17 @@ export class RepairAction extends ReservingAction<RepairReservation> {
       }
     }
     return result == OK;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    if(!this.Target)
+    {
+      return 0;
+    }
+    let creepWorkParts = countBy(creep.body, (bpd) => bpd.type)[WORK];
+    let remainingEnergy = creep.store.getUsedCapacity(RESOURCE_ENERGY);
+    let fullExpenditure = Math.ceil(remainingEnergy / (creepWorkParts));
+    let progress = (this.Target.hitsMax - this.Target.hits) / (creepWorkParts * REPAIR_POWER);
+    return Math.min(progress,fullExpenditure);
   }
 }

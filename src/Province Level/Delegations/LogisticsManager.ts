@@ -38,7 +38,7 @@ export class LogisticsManager extends Delegation
       //Sources will likely later include more sources
       let sources = mineContainers;
 
-      const sinkTypes : StructureConstant[] = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION,STRUCTURE_STORAGE];
+      const sinkTypes : StructureConstant[] = [STRUCTURE_EXTENSION,STRUCTURE_SPAWN,STRUCTURE_STORAGE];
       let sinks = this.province.Capital.room.find(FIND_STRUCTURES)
         .filter((s) : s is AnyStoreStructure => sinkTypes.includes(s.structureType))
         .sort((a,b) => sinkTypes.indexOf(a.structureType) - sinkTypes.indexOf(b.structureType));
@@ -127,7 +127,6 @@ export class LogisticsManager extends Delegation
             let withdraw = new WithdrawAction(sourceTarget,RESOURCE_ENERGY,creep);
             plan.append(withdraw);
           }
-
         }
       }
 

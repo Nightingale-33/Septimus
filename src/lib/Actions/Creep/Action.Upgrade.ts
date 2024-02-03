@@ -1,5 +1,5 @@
 import { Action } from "../../Action";
-import { all } from "lodash";
+import { countBy } from "lodash";
 
 export const UPGRADE_ID: string = "U";
 
@@ -34,7 +34,7 @@ export class UpgradeAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+    return this.Target !== null && creep.pos.inRangeTo(this.Target,3) && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
   }
 
   cleanup(creep : Creep) : void {};
@@ -42,5 +42,15 @@ export class UpgradeAction extends Action {
   run(creep: Creep): boolean {
     let target = this.Target;
     return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    if(!this.Target)
+    {
+      return 0;
+    }
+    let creepWorkParts = countBy(creep.body, (bpd) => bpd.type)[WORK];
+    let remainingEnergy = creep.store.getUsedCapacity(RESOURCE_ENERGY);
+    return Math.ceil(remainingEnergy / (creepWorkParts));
   }
 }

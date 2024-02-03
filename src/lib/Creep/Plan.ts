@@ -25,10 +25,10 @@ Creep.prototype.checkPlan = function()
     this.memory.plan.Steps = [];
   }
 
-  if(!all(this.memory.plan.Steps, (step ) => step.isValid(this)))
-  {
-    this.memory.plan.clear(this);
-  }
+  // if(!all(this.memory.plan.Steps, (step ) => step.isValid(this)))
+  // {
+  //   this.memory.plan.clear(this);
+  // }
 }
 
 Creep.prototype.executePlan = function()

@@ -49,7 +49,11 @@ export class MoveAction extends Action {
   }
 
   run(creep: Creep): boolean {
-    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? 500 : 1});
+    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? 500 : 1,visualizePathStyle:{}},{visualizePathStyle:{stroke:"#FF0000"}});
     return result == OK || result == ERR_TIRED;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    return creep.pos.getRangeTo(this.Target);
   }
 }

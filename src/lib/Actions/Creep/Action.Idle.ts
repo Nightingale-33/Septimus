@@ -3,6 +3,9 @@ import { Action } from "../../Action";
 export const IDLE_ID: string = "I";
 
 export class IdleAction extends Action {
+  ApproxTimeLeft(creep: Creep): number {
+      return 0;
+  }
   constructor(say: string | undefined = undefined) {
     super();
     if (say) {
@@ -26,8 +29,6 @@ export class IdleAction extends Action {
   }
 
   run(creep: Creep): boolean {
-    let Direction = Math.floor(Math.random() * 57);
-    let Dir = ((Direction % 8) + 1) as DirectionConstant;
-    return creep.move(Dir) === OK;
+    return true;
   }
 }

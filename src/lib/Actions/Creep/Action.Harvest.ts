@@ -32,7 +32,7 @@ export class HarvestAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.pos.isNearTo(this.Target.pos) && (this.Target instanceof  Source ? this.Target.energy > 0 : this.Target.mineralAmount > 0);
+    return this.Target !== null && creep.pos.isNearTo(this.Target) && (this.Target instanceof  Source ? this.Target.energy > 0 : this.Target.mineralAmount > 0);
   }
 
   run(creep: Creep): boolean {
@@ -44,5 +44,9 @@ export class HarvestAction extends Action {
     //Stay the fuck there and don't move
     moveTo(creep,creep.pos,{priority:1000});
     return creep.harvest(target) === OK;
+  }
+
+  ApproxTimeLeft(creep: Creep): number {
+    return 1;
   }
 }

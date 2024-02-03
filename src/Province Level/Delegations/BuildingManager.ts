@@ -34,14 +34,10 @@ export class BuildingManager extends Delegation
       for(const creep of creeps)
       {
         let plan = creep.memory.plan;
-        if(!plan.isEmpty())
-        {
-          continue;
-        }
 
         let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
         let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-        if(creepUsed < creepFree)
+        if(creepUsed < creepFree && plan.Steps.length < 3)
         {
           //Restock
           //Get some energy
@@ -77,7 +73,7 @@ export class BuildingManager extends Delegation
             plan.append(withdraw);
             continue;
           }
-        } else
+        } else if(!(plan.peek() instanceof BuildAction) && !(plan.peek() instanceof MoveAction))
         {
           //Build
           let bestSite = min(this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal),(cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
