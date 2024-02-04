@@ -6,16 +6,18 @@ export abstract class Reservation<T extends _HasId,T2 extends _HasId> {
   reservationId: reservationId;
   reserver: Id<T>;
   reserved: Id<T2>;
+  amount : number;
 
   protected GetNewReservationId() : string {
     return GetRandomId();
   }
 
 
-  constructor(reserver : T, reservee : T2) {
+  constructor(reserver : T, reservee : T2, amount : number) {
     this.reservationId = this.GetNewReservationId();
     this.reserver = reserver.id;
     this.reserved =reservee.id;
+    this.amount = amount;
   }
 
 }

@@ -2,125 +2,107 @@ import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
 import { flatten, max, pick, sum } from "lodash";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
-import { GetLargestBody } from "../../utils/SpawnUtils";
-import { SOURCE_HARVEST_PARTS } from "../../Constants";
-import { HARVESTER } from "../../lib/Roles/Role.Harvester";
-import { log } from "../../utils/Logging/Logger";
 import { HAULER } from "../../lib/Roles/Role.Hauler";
 import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
-import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
 import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
+import { log } from "../../utils/Logging/Logger";
+import { Behaviour, Planner } from "../../lib/Planning/Planner";
+import { Action } from "lib/Action";
+import { AbstractCreep } from "lib/Planning/AbstractCreep";
 
-export class EnergyLogisticsManager extends Delegation
-{
-    name: string = "EnergyLogisticsManager";
-    get Id(): string { return this.province.name + "_" + this.name}
+export class EnergyLogisticsManager extends Delegation implements Behaviour {
+  name: string = "EnergyLogisticsManager";
 
-    province : Province;
+  get Id(): string {
+    return this.province.name + "_" + this.name;
+  }
 
-    constructor(province: Province) {
-      super();
-      this.province = province;
-    }
+  province: Province;
 
-    ShouldExecute(): boolean {
-        return true;
-    }
-    Execute(): void {
-      //Figure out how many haulers we need
-      let mineContainers = this.province.MiningSites
-        .map((mm) => mm.container)
-        .filter((c) : c is StructureContainer => c instanceof StructureContainer)
-        .sort((a,b) => ResourceReservation.GetPostReservationStore(b,RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a,RESOURCE_ENERGY).used);
+  constructor(province: Province) {
+    super();
+    this.province = province;
+    this.planner = new Planner(10,this);
+  }
 
-      //Sources will likely later include more sources
-      let sources = mineContainers;
+  planner : Planner;
 
-      const sinkTypes : StructureConstant[] = [STRUCTURE_EXTENSION,STRUCTURE_SPAWN,STRUCTURE_STORAGE];
-      let sinks = this.province.Capital.room.find(FIND_STRUCTURES)
-        .filter((s) : s is AnyStoreStructure => sinkTypes.includes(s.structureType))
-        .sort((a,b) => sinkTypes.indexOf(a.structureType) - sinkTypes.indexOf(b.structureType));
+  sinks : AnyStoreStructure[];
+  sources: AnyStoreStructure[];
 
-      let haulable = sum(sources,(s) => s.store.getUsedCapacity(RESOURCE_ENERGY));
-      let sinkable = sum(sinks,(s) => s.store.getFreeCapacity(RESOURCE_ENERGY));
-      //Cap at sinkable. Nothing to haul if nowhere to haul to
-      haulable = Math.min(haulable,sinkable);
-
-      let carryParts = Math.floor(haulable / CARRY_CAPACITY);
-
-      let creeps = this.province.RequestParts([HAULER],CARRY,carryParts,this.Id,carryParts*10);
-
-      //Ask the haulers to do their job
-      for(const creep of creeps)
-      {
-        let plan = creep.memory.plan;
-        if(plan.peek() instanceof IdleAction)
-        {
-          plan.clear(creep);
-        }
-        if(!plan.isEmpty())
-        {
-          if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-          {
-            let opportunityGrab = creep.pos.findInRange(FIND_DROPPED_RESOURCES,1, {filter: (dr) => dr.amount >= creep.store.getFreeCapacity(RESOURCE_ENERGY)});
-            if(opportunityGrab.length > 0)
-            {
-              let yoink = max(opportunityGrab,(g) => g.amount);
-              plan.prepend(new PickupAction(yoink,creep));
-            }
-          }
-        } else
-        {
-          if(creep.store.getFreeCapacity() === 0)
-          {
-            let fillTarget : AnyStoreStructure | undefined = undefined;
-            for(const sink of sinks)
-            {
-              if(ResourceReservation.GetPostReservationStore(sink,RESOURCE_ENERGY).free > 0)
-              {
-                fillTarget = sink;
-                break;
-              }
-            }
-
-            if(fillTarget === undefined)
-            {
-              plan.append(new IdleAction());
-              continue;
-            }
-
-            let move = new MoveAction(fillTarget.pos,1,true);
-            plan.append(move);
-            let fill = new FillAction(fillTarget,RESOURCE_ENERGY,creep);
-            plan.append(fill);
-          } else
-          {
-            let sourceTarget : AnyStoreStructure | undefined = undefined;
-            for(const source of sources)
-            {
-              if(ResourceReservation.GetPostReservationStore(source,RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY))
-              {
-                sourceTarget = source;
-                break;
-              }
-            }
-
-            if(sourceTarget === undefined)
-            {
-              plan.append(new IdleAction());
-              continue;
-            }
-
-            let move = new MoveAction(sourceTarget.pos,1,true);
-            plan.append(move);
-            let withdraw = new WithdrawAction(sourceTarget,RESOURCE_ENERGY,creep);
-            plan.append(withdraw);
+  PlanNext(creep: AbstractCreep): Action | null {
+      if (creep.store.getFreeCapacity() === 0) {
+        let fillTarget: AnyStoreStructure | undefined = undefined;
+        for (const sink of this.sinks) {
+          if (ResourceReservation.GetPostReservationStore(sink, RESOURCE_ENERGY).free > 0) {
+            fillTarget = sink;
+            break;
           }
         }
+
+        if (fillTarget === undefined) {
+          return new IdleAction();
+        }
+
+        return new FillAction(fillTarget, RESOURCE_ENERGY, creep);
+      } else {
+        let sourceTarget: AnyStoreStructure | undefined = undefined;
+        for (const source of this.sources) {
+          if (ResourceReservation.GetPostReservationStore(source, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
+            sourceTarget = source;
+            break;
+          }
+        }
+
+        if (sourceTarget === undefined) {
+          return new IdleAction();
+        }
+
+        return new WithdrawAction(sourceTarget, RESOURCE_ENERGY, creep);
       }
 
+  }
+
+  ShouldExecute(): boolean {
+    return true;
+  }
+
+  Execute(): void {
+    //Figure out how many haulers we need
+    let mineContainers = this.province.MiningSites
+      .map((mm) => mm.container)
+      .filter((c): c is StructureContainer => c instanceof StructureContainer)
+      .sort((a, b) => ResourceReservation.GetPostReservationStore(b, RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a, RESOURCE_ENERGY).used);
+
+    //Sources will likely later include more sources
+    this.sources = mineContainers;
+
+    const sinkTypes: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_STORAGE];
+    this.sinks = this.province.Capital.room.find(FIND_STRUCTURES)
+      .filter((s): s is AnyStoreStructure => sinkTypes.includes(s.structureType))
+      .sort((a, b) => sinkTypes.indexOf(a.structureType) - sinkTypes.indexOf(b.structureType));
+
+    let haulable = sum(this.sources, (s) => s.store.getUsedCapacity(RESOURCE_ENERGY));
+    let sinkable = sum(this.sinks, (s) => s.store.getFreeCapacity(RESOURCE_ENERGY));
+    //Cap at sinkable. Nothing to haul if nowhere to haul to
+    haulable = Math.min(haulable, sinkable);
+
+    let carryParts = Math.floor(haulable / CARRY_CAPACITY);
+
+    let creeps = this.province.RequestParts([HAULER], CARRY, carryParts, this.Id, carryParts * 10);
+
+    //Ask the haulers to do their job
+    for (const creep of creeps) {
+      let plan = creep.memory.plan;
+      if (plan.peek() instanceof IdleAction) {
+        plan.clear(creep);
+      }
+
+      this.planner.Plan(creep);
     }
+
+  }
 
 }

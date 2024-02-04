@@ -3,6 +3,7 @@ import { all, any, isNumber, parseInt } from "lodash";
 import { GetPositionFromDirection } from "../../../utils/MovementUtils";
 import { log } from "../../../utils/Logging/Logger";
 import { moveTo } from "screeps-cartographer"
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
 export const MOVE_ID: string = "M";
 
@@ -54,7 +55,11 @@ export class MoveAction extends Action {
     return result == OK || result == ERR_TIRED;
   }
 
-  ApproxTimeLeft(creep: Creep): number {
+  ApproxTimeLeft(creep: AbstractCreep): number {
     return creep.pos.getRangeTo(this.Target);
+  }
+
+  apply(ac: AbstractCreep) {
+    ac.pos = this.Target;
   }
 }

@@ -1,6 +1,8 @@
 import { Action } from "../../Action";
 import { all } from "lodash";
 import { moveTo } from "screeps-cartographer";
+import { CountParts } from "../../../utils/CreepUtils";
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
 export const HARVEST_ID: string = "H";
 
@@ -15,16 +17,12 @@ export class HarvestAction extends Action {
     return Game.getObjectById(this.TargetId);
   }
 
-  constructor(sourceId: Id<Source> | Id<Mineral> | Source | Mineral) {
-    super();
-    if(sourceId instanceof Source || sourceId instanceof Mineral)
-    {
-      this.TargetId = sourceId.id;
-    } else
-    {
-      this.TargetId = sourceId;
-    }
+  pos: RoomPosition;
 
+  constructor(sourceId: Id<Source> | Id<Mineral>, pos : RoomPosition) {
+    super();
+    this.TargetId = sourceId;
+    this.pos = pos;
   }
 
 
@@ -35,25 +33,38 @@ export class HarvestAction extends Action {
   static fromJSON(data: string) {
     let components = data.split(",", 1);
     let id = components[0] as Id<Source> | Id<Mineral>;
-    return new HarvestAction(id);
+    let obj = Game.getObjectById(id);
+    if(!obj)
+    {
+      return null;
+    }
+    return new HarvestAction(obj.id,obj.pos);
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.pos.isNearTo(this.Target) && (this.Target instanceof  Source ? this.Target.energy > 0 : this.Target.mineralAmount > 0);
+    return this.Target !== null && (this.Target instanceof Source ? this.Target.energy > 0 : this.Target.mineralAmount > 0);
   }
 
   run(creep: Creep): boolean {
     let target = this.Target;
-    if(!target)
-    {
+    if (this.pos) {
+      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 250, avoidCreeps: avoidCreeps });
+    }
+    if (!target) {
       return false;
     }
-    //Stay the fuck there and don't move
-    //moveTo(creep,creep.pos,{priority:1000});
     return creep.harvest(target) === OK;
   }
 
-  ApproxTimeLeft(creep: Creep): number {
-    return 1;
+  ApproxTimeLeft(creep: AbstractCreep): number {
+    let expected = SOURCE_ENERGY_CAPACITY / CountParts(creep)[WORK] * HARVEST_POWER;
+    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    return travel + expected;
+  }
+
+  apply(ac: AbstractCreep) {
+    ac.pos = this.pos;
+    ac.store.energy = ac.store.getCapacity(RESOURCE_ENERGY);
   }
 }

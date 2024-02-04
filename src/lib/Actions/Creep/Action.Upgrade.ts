@@ -1,5 +1,7 @@
 import { Action } from "../../Action";
 import { countBy } from "lodash";
+import { moveTo } from "screeps-cartographer";
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
 export const UPGRADE_ID: string = "U";
 
@@ -14,9 +16,12 @@ export class UpgradeAction extends Action {
     return Game.getObjectById(this.TargetId);
   }
 
+  pos: RoomPosition;
+
   constructor(controller: StructureController) {
     super();
     this.TargetId = controller.id;
+    this.pos = controller.pos;
   }
 
   toJSON(): string {
@@ -34,23 +39,35 @@ export class UpgradeAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.pos.inRangeTo(this.Target,3) && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
+    return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
   }
 
   cleanup(creep : Creep) : void {};
 
   run(creep: Creep): boolean {
     let target = this.Target;
+    if(this.pos)
+    {
+      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
+      moveTo(creep,{pos:this.pos,range:3},{priority:5,avoidCreeps:avoidCreeps});
+    }
     return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
   }
 
-  ApproxTimeLeft(creep: Creep): number {
+  ApproxTimeLeft(creep: AbstractCreep): number {
     if(!this.Target)
     {
       return 0;
     }
     let creepWorkParts = countBy(creep.body, (bpd) => bpd.type)[WORK];
     let remainingEnergy = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-    return Math.ceil(remainingEnergy / (creepWorkParts));
+    let expected = Math.ceil(remainingEnergy / (creepWorkParts));
+    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,3) - 3;
+    return travel + expected;
+  }
+
+  apply(ac: AbstractCreep) {
+    ac.pos = this.pos;
+    ac.store.energy = 0;
   }
 }

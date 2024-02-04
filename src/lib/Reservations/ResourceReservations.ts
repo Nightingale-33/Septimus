@@ -1,5 +1,6 @@
 import { Reservation } from "./Reservation";
 import { remove } from "lodash";
+import { AbstractCreep } from "../Planning/AbstractCreep";
 
 declare global {
   interface Memory {
@@ -7,17 +8,15 @@ declare global {
   }
 }
 
-export class ResourceReservation extends Reservation<Creep, _HasId & ({ store: StoreDefinition } | {
+export class ResourceReservation extends Reservation<Creep | AbstractCreep, _HasId & ({ store: StoreDefinition } | {
   amount: number
 })> {
   resourceType: ResourceConstant;
-  amount: number;
 
-  constructor(reserver: Creep, reservee: _HasId & ({ store: StoreDefinition } | {
+  constructor(reserver: Creep | AbstractCreep, reservee: _HasId & ({ store: StoreDefinition } | {
     amount: number
   }), amount: number, resourceType: ResourceConstant = RESOURCE_ENERGY) {
-    super(reserver, reservee);
-    this.amount = amount;
+    super(reserver, reservee, amount);
     this.resourceType = resourceType;
   }
 
@@ -25,8 +24,14 @@ export class ResourceReservation extends Reservation<Creep, _HasId & ({ store: S
     if (!Memory.RsrcResv[reservation.reserved]) {
       Memory.RsrcResv[reservation.reserved] = [];
     }
-    if(!Memory.RsrcResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId)) {
+    if (!Memory.RsrcResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId)) {
       Memory.RsrcResv[reservation.reserved].push(reservation);
+      let reserver = Game.getObjectById(reservation.reserver);
+      if (reserver instanceof Creep) {
+        reserver.memory.activeReservations.push(reservation.reservationId);
+      } else {
+        throw new Error("Attempting to reserve with a non-existent reseserver");
+      }
     }
   }
 
@@ -83,7 +88,7 @@ export class ResourceReservation extends Reservation<Creep, _HasId & ({ store: S
 
       remove(Memory.RsrcResv[id], (reservation) => {
         let reserver = Game.getObjectById(reservation.reserver);
-        if (!reserver) {
+        if (!(reserver instanceof Creep)) {
           return true;
         }
         //Check the reserver still has it

@@ -208,6 +208,15 @@ export class Empire {
       }
     }
 
+    for(const flagName in Memory.flags)
+    {
+      if(!Game.flags[flagName])
+      {
+        log(4,`Tidying up Flag Memory for: ${flagName}`);
+        delete Memory.flags[flagName];
+      }
+    }
+
     BuildReservation.Cleanup();
     ResourceReservation.Cleanup();
     RepairReservation.Cleanup();

@@ -1,5 +1,7 @@
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
+import { moveTo } from "screeps-cartographer";
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
 export const WITHDRAW_ID = "W";
 
@@ -13,9 +15,11 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     return Game.getObjectById(this.TargetId);
   }
 
+  pos: RoomPosition;
+
   ResourceType: ResourceConstant;
 
-  constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | undefined = undefined) {
+  constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | AbstractCreep | undefined = undefined) {
     let reservation : ResourceReservation | undefined = undefined;
     if(creep)
     {
@@ -24,15 +28,21 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     }
     super(reservation);
     this.TargetId = target.id;
+    this.pos = target.pos;
     this.ResourceType = resource;
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.pos.isNearTo(this.Target) && creep.store.getFreeCapacity(this.ResourceType) > 0;
+    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0;
   }
 
   run(creep: Creep) : boolean {
     let target = this.Target;
+    if(this.pos)
+    {
+      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
+      moveTo(creep,{pos:this.pos,range:1},{priority:45,avoidCreeps:avoidCreeps});
+    }
     return (target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
 
@@ -57,7 +67,14 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     return null;
   }
 
-  ApproxTimeLeft(creep: Creep): number {
-    return 1;
+  ApproxTimeLeft(creep: AbstractCreep): number {
+    let expected = 1;
+    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    return travel + expected;
+  }
+
+  apply(ac: AbstractCreep) {
+    ac.pos = this.pos;
+    ac.store.energy = this.Reservation ? ac.store.energy - this.Reservation.amount : ac.store.getCapacity(RESOURCE_ENERGY);
   }
 }

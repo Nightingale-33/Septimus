@@ -1,6 +1,8 @@
-import { Action } from "../../Action"
+import { Action } from "../../Action";
+import { moveTo } from "screeps-cartographer";
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
-export const DISMANTLE_ID : string = "D";
+export const DISMANTLE_ID: string = "D";
 
 export class DismantleAction extends Action {
 
@@ -14,23 +16,24 @@ export class DismantleAction extends Action {
     return Game.getObjectById(this.TargetId);
   }
 
+  pos: RoomPosition;
+
   constructor(structure: Structure) {
     super();
     this.TargetId = structure.id;
+    this.pos = structure.pos;
   }
 
   toJSON(): string {
     return DISMANTLE_ID + ":" + this.TargetId;
   }
 
-  static fromJSON(data : string) {
+  static fromJSON(data: string) {
     let id = data as Id<Structure>;
     let target = Game.getObjectById(id);
-    if(target)
-    {
+    if (target) {
       return new DismantleAction(target);
-    } else
-    {
+    } else {
       return null;
     }
   }
@@ -39,14 +42,19 @@ export class DismantleAction extends Action {
     return this.Target !== null;
   }
 
-  cleanup(creep : Creep) : void {};
-
   run(creep: Creep): boolean {
     let target = this.Target;
+    if (this.pos) {
+      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 50, avoidCreeps: avoidCreeps });
+    }
     return (target ? creep.dismantle(target) : ERR_INVALID_TARGET) == OK;
   }
 
-  ApproxTimeLeft(creep: Creep): number {
+  ApproxTimeLeft(creep: AbstractCreep): number {
     throw new Error("Approx Time not calculated for Dismantle");
+  }
+
+  apply(ac: AbstractCreep) {
   }
 }

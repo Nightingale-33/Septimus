@@ -2,7 +2,6 @@ import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
 import { flatten, min } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
-import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
 import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
@@ -40,9 +39,14 @@ export class BuildingManager extends Delegation
           plan.clear(creep);
         }
 
+        if(!plan.isEmpty())
+        {
+          continue;
+        }
+
         let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
         let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-        if(creepUsed < creepFree && plan.Steps.length < 3)
+        if(creepUsed < creepFree && !(plan.peek()?.Name === "Withdraw" || plan.peek()?.Name === "Pickup"))
         {
           //Restock
           //Get some energy
@@ -54,39 +58,28 @@ export class BuildingManager extends Delegation
           });
           if(storage && ResourceReservation.GetPostReservationStore(storage,RESOURCE_ENERGY).used >= creepFree)
           {
-            let move = new MoveAction(storage,1);
             let withdraw = new WithdrawAction(storage,RESOURCE_ENERGY,creep);
-            plan.append(move);
             plan.append(withdraw);
             continue;
           }
           if(resources.length > 0)
           {
             let closest = min(resources,(r) => r.pos.getRangeTo(creep.pos));
-            let move = new MoveAction(closest,1);
             let pickup = new PickupAction(closest,creep);
-            plan.append(move);
             plan.append(pickup);
             continue;
           }
           if(containers.length > 0)
           {
             let closest = min(containers,(c) => c.pos.getRangeTo(creep.pos));
-            let move = new MoveAction(closest,1);
             let withdraw = new WithdrawAction(closest,RESOURCE_ENERGY,creep);
-            plan.append(move);
             plan.append(withdraw);
             continue;
           }
-        } else if(!(plan.peek() instanceof BuildAction) && !(plan.peek() instanceof MoveAction))
+        } else if(creepUsed > creepFree && !(plan.peek()?.Name === "Build"))
         {
           //Build
           let bestSite = min(this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal),(cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
-          if(!creep.pos.inRangeTo(bestSite.pos,3))
-          {
-            let move = new MoveAction(bestSite,3,true);
-            plan.append(move);
-          }
           let build = new BuildAction(bestSite,creep);
           plan.append(build);
         }

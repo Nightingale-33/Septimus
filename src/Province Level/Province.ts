@@ -154,9 +154,16 @@ export class Province {
       if(creep.memory.plan.isEmpty() && creep.memory.assignmentId !== undefined)
       {
         log(1,`Creep: ${creep.name} was idle and is thus having its assignment cleared`);
-        delete creep.memory.assignmentId;
+        this.UnassignCreep(creep);
       }
     }
+  }
+
+  UnassignCreep(creep: Creep)
+  {
+    delete creep.memory.assignmentId;
+    delete creep.memory.assignmentPriority;
+    creep.memory.plan.clear(creep);
   }
 
   RequestCreeps(role: Role, amount: number, requestId : string, requestPriority: number, deRegisterExcess : boolean = true, requestSpawn : boolean = true) : Creep[]
@@ -166,7 +173,7 @@ export class Province {
     if(deRegisterExcess && assignedCreeps.length > amount)
     {
       //Trim the excess
-      assignedCreeps.slice(amount).forEach((c) => {delete c.memory.assignmentId; delete c.memory.assignmentPriority;});
+      assignedCreeps.slice(amount).forEach((c) => this.UnassignCreep(c));
       assignedCreeps = assignedCreeps.slice(0,amount);
     }
 
@@ -240,7 +247,7 @@ export class Province {
       if(keptCreepNumber < assignedCreeps.length)
       {
         //Trim the excess
-        assignedCreeps.slice(keptCreepNumber).forEach((c) => {delete c.memory.assignmentId; delete c.memory.assignmentPriority;});
+        assignedCreeps.slice(keptCreepNumber).forEach((c) => this.UnassignCreep(c));
         assignedCreeps = assignedCreeps.slice(0,keptCreepNumber);
       }
 

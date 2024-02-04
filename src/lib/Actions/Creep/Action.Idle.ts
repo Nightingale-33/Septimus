@@ -1,9 +1,10 @@
 import { Action } from "../../Action";
+import { AbstractCreep } from "../../Planning/AbstractCreep";
 
 export const IDLE_ID: string = "I";
 
 export class IdleAction extends Action {
-  ApproxTimeLeft(creep: Creep): number {
+  ApproxTimeLeft(creep: AbstractCreep): number {
       return 0;
   }
   constructor(say: string | undefined = undefined) {
@@ -30,5 +31,8 @@ export class IdleAction extends Action {
 
   run(creep: Creep): boolean {
     return true;
+  }
+
+  apply(ac: AbstractCreep) {
   }
 }

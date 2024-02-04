@@ -1,5 +1,6 @@
 import { Reservation } from "./Reservation";
 import { remove } from "lodash";
+import { AbstractCreep } from "../Planning/AbstractCreep";
 
 declare global {
   interface Memory {
@@ -7,12 +8,10 @@ declare global {
   }
 }
 
-export class RepairReservation extends Reservation<Creep, Structure> {
-  amount: number;
+export class RepairReservation extends Reservation<Creep | AbstractCreep, Structure> {
 
-  constructor(creep: Creep, str: Structure, amount: number) {
-    super(creep, str);
-    this.amount = amount;
+  constructor(creep: Creep | AbstractCreep, str: Structure, amount: number) {
+    super(creep, str, amount);
   }
 
   static CheckMemory(target: Structure): boolean {
@@ -31,8 +30,14 @@ export class RepairReservation extends Reservation<Creep, Structure> {
     if (!Memory.RepairResv[reservation.reserved]) {
       Memory.RepairResv[reservation.reserved] = [];
     }
-    if(!Memory.RepairResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId)) {
+    if (!Memory.RepairResv[reservation.reserved].find((r) => r.reservationId === reservation.reservationId)) {
       Memory.RepairResv[reservation.reserved].push(reservation);
+      let reserver = Game.getObjectById(reservation.reserver);
+      if (reserver instanceof Creep) {
+        reserver.memory.activeReservations.push(reservation.reservationId);
+      } else {
+        throw new Error("Attempting to reserve with a non-existent reseserver");
+      }
     }
   }
 
@@ -59,7 +64,7 @@ export class RepairReservation extends Reservation<Creep, Structure> {
 
       remove(Memory.RepairResv[id], (reservation) => {
         let reserver = Game.getObjectById(reservation.reserver);
-        if (!reserver) {
+        if (!(reserver instanceof Creep)) {
           return true;
         }
         //Check the reserver still has it

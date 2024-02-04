@@ -11,13 +11,15 @@ declare global {
   }
 }
 
-export abstract class ReservingAction<T extends Reservation<Creep, _HasId>> extends Action {
+export abstract class ReservingAction<T extends Reservation<{ id: Id<Creep> }, _HasId>> extends Action {
 
   ReservationId?: reservationId;
+  Reservation? : Reservation<{ id: Id<Creep> }, _HasId>;
 
   protected constructor(reservation: T | undefined = undefined) {
     super();
     if (reservation) {
+      this.Reservation = reservation;
       this.ReservationId = reservation.reservationId;
       if (reservation instanceof BuildReservation) {
         BuildReservation.AddReservation(reservation);

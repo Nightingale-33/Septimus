@@ -1,7 +1,7 @@
 import { HARVESTER } from "../../lib/Roles/Role.Harvester";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { HarvestAction } from "../../lib/Actions/Creep/Action.Harvest";
-import { countBy, defaultsDeep, flatten, sortBy } from "lodash";
+import { defaultsDeep } from "lodash";
 import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
@@ -9,7 +9,6 @@ import { RepairAction } from "../../lib/Actions/Creep/Action.Repair";
 import { SOURCE_HARVEST_PARTS } from "../../Constants";
 import { log } from "../../utils/Logging/Logger";
 import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
-import { move } from "screeps-cartographer";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 
 interface MiningSiteMemory extends ProvinceMissionMemory {
@@ -111,7 +110,6 @@ export class MiningMission extends ProvinceMission
       let onMiningPos = false;
       if(creep.pos.isEqualTo(this.miningPos))
       {
-        log(1,`Creep: ${creep.name} is on the mining Pos`);
         miningPosClaimed = true;
         onMiningPos = true;
       }
@@ -124,32 +122,23 @@ export class MiningMission extends ProvinceMission
       {
         if(creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && this.container)
         {
+            log(10,`Creep: ${creep.name} is full and there's a container`);
             if(this.container instanceof ConstructionSite)
             {
+              log(10,`Creep: ${creep.name} is helping build the container`);
               let build = new BuildAction(this.container,creep);
               plan.prepend(build);
             } else if(this.container.hits < this.container.hitsMax)
             {
+              log(10,`Creep: ${creep.name} is helping repair the container`);
               let repair = new RepairAction(this.container,creep);
               plan.prepend(repair);
             } else if(!onMiningPos)
             {
-              log(1,`Creep: ${creep.name} is not on the Mining Pos and is full`);
-              let adjacent = true;
-              if(!creep.pos.isNearTo(this.miningPos))
-              {
-                adjacent = false;
-              }
-              log(1,`Creep ${creep.name} is adjacent to the Mining Pos: ${adjacent}`);
-              let move = new MoveAction(this.miningPos,1);
+              log(10,`Creep: ${creep.name} is helping fill the container`);
               let deposit = new FillAction(this.container,RESOURCE_ENERGY,creep);
-              let returnMove = new MoveAction(creep.pos,0,true);
-              if(!adjacent) {plan.prepend(returnMove);}
               plan.prepend(deposit);
-              if(!adjacent) {plan.prepend(move);}
             }
-
-
         }
         continue;
       }
@@ -161,12 +150,7 @@ export class MiningMission extends ProvinceMission
           let move = new MoveAction(this.miningPos,0,true);
           plan.append(move);
           miningPosClaimed = true;
-        } else
-        {
-          let move = new MoveAction(this.pos,1,false);
-          plan.append(move);
         }
-
       }
 
       if(this.source && this.source.energy === 0)
@@ -175,7 +159,7 @@ export class MiningMission extends ProvinceMission
         continue;
       }
 
-      let harvest = new HarvestAction(this.sourceId);
+      let harvest = new HarvestAction(this.sourceId,this.pos);
       plan.append(harvest);
     }
   }

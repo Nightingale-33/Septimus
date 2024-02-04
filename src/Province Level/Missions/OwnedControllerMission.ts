@@ -3,7 +3,6 @@ import { Province } from "../Province";
 import { defaultsDeep, min } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
 import { log } from "../../utils/Logging/Logger";
-import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { UpgradeAction } from "../../lib/Actions/Creep/Action.Upgrade";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
 import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
@@ -76,46 +75,28 @@ export class OwnedControllerMission extends ProvinceMission {
         });
         if(storage && ResourceReservation.GetPostReservationStore(storage,RESOURCE_ENERGY).used >= creepFree)
         {
-          let move = new MoveAction(storage,1);
           let withdraw = new WithdrawAction(storage,RESOURCE_ENERGY,creep);
-          plan.append(move);
           plan.append(withdraw);
           continue;
         }
         if(resources.length > 0)
         {
           let closest = min(resources,(r) => r.pos.getRangeTo(creep.pos));
-          let move = new MoveAction(closest,1);
           let pickup = new PickupAction(closest,creep);
-          plan.append(move);
           plan.append(pickup);
           continue;
         }
         if(containers.length > 0)
         {
           let closest = min(containers,(c) => c.pos.getRangeTo(creep.pos));
-          let move = new MoveAction(closest,1);
           let withdraw = new WithdrawAction(closest,RESOURCE_ENERGY,creep);
-          plan.append(move);
           plan.append(withdraw);
           continue;
         }
       } else
       {
-        //Use the energy
-        if(!creep.pos.inRangeTo(this.pos,3))
-        {
-          let move = new MoveAction(this.pos,3);
-          plan.append(move);
-        }
-
         let upgrade = new UpgradeAction(controller);
         plan.append(upgrade);
-      }
-
-      if(plan.isEmpty())
-      {
-        plan.append(new IdleAction());
       }
     }
   }

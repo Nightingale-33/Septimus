@@ -9,19 +9,17 @@ declare global {
   }
 
   interface Creep {
-    checkPlan() : void;
-    executePlan() : void;
+    checkPlan(): void;
+
+    executePlan(): void;
   }
 }
 
-Creep.prototype.checkPlan = function()
-{
-  if(!this.memory.plan)
-  {
+Creep.prototype.checkPlan = function() {
+  if (!this.memory.plan) {
     this.memory.plan = new Plan([]);
   }
-  if(!this.memory.plan.Steps)
-  {
+  if (!this.memory.plan.Steps) {
     this.memory.plan.Steps = [];
   }
 
@@ -29,59 +27,54 @@ Creep.prototype.checkPlan = function()
   // {
   //   this.memory.plan.clear(this);
   // }
-}
+};
 
-Creep.prototype.executePlan = function()
-{
-    while(!this.memory.plan.isEmpty())
-    {
-      let step = this.memory.plan.Steps[0];
-      if(!step.isValid(this))
-      {
-        let completedStep = this.memory.plan.Steps.shift();
-        if(completedStep)
-        {
-          completedStep.cleanup(this);
-        }
-      } else
-      {
-        let result = step.run(this);
-        //Todo: Use results to try and multi-task
-        break;
-      }
-    }
-
-  if(CHATTY)
-  {
+Creep.prototype.executePlan = function() {
+  if (CHATTY) {
     let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
     if (this.memory.plan.Steps.length > 3) {
       chatPlan += "+";
+      let additional = this.memory.plan.Steps.length - 3;
+      if (additional > 1) {
+        chatPlan += additional;
+      }
     }
     this.say(chatPlan);
   }
-}
+  while (!this.memory.plan.isEmpty()) {
+    let step = this.memory.plan.Steps[0];
+    if (!step.isValid(this)) {
+      let completedStep = this.memory.plan.Steps.shift();
+      if (completedStep) {
+        completedStep.cleanup(this);
+      }
+    } else {
+      let result = step.run(this);
+      //Todo: Use results to try and multi-task
+      break;
+    }
+  }
+};
 
 export class Plan {
   Steps: Action[];
 
   constructor(actions: Action[]) {
     this.Steps = actions;
-    if(!this.Steps)
-    {
+    if (!this.Steps) {
       this.Steps = [];
     }
   }
 
-  clear(creep: Creep) : void {
-    for(const action of this.Steps)
-    {
+  clear(creep: Creep): void {
+    for (const action of this.Steps) {
       action.cleanup(creep);
     }
     this.Steps = [];
   }
 
   static fromJSON(data: string[]): Plan {
-    let actions = data.map((s) => ActionfromJSON(s)).filter((a) : a is Action => a !== null);
+    let actions = data.map((s) => ActionfromJSON(s)).filter((a): a is Action => a !== null);
     return new Plan(actions);
   }
 
