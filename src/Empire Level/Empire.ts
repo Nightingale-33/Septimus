@@ -132,7 +132,8 @@ export class Empire {
         //Probably a Province Mission
         if(!this.Provinces[flagScope])
         {
-          log(1,`Flag: ${flag} potentially designated for non-existent Province: ${flagScope}`);
+          log(1,`Flag: ${flag} designated for non-existent Province: ${flagScope} removing`);
+          f.remove();
           continue;
         }
 

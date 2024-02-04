@@ -54,6 +54,10 @@ export class OwnedControllerMission extends ProvinceMission {
     {
       //Behaviour logic
       let plan = creep.memory.plan;
+      if(plan.peek() instanceof IdleAction)
+      {
+        plan.clear(creep);
+      }
       if(!plan.isEmpty())
       {
         continue;

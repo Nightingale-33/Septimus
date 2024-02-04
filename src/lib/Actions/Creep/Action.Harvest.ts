@@ -15,9 +15,16 @@ export class HarvestAction extends Action {
     return Game.getObjectById(this.TargetId);
   }
 
-  constructor(sourceId: Id<Source> | Id<Mineral>) {
+  constructor(sourceId: Id<Source> | Id<Mineral> | Source | Mineral) {
     super();
-    this.TargetId = sourceId;
+    if(sourceId instanceof Source || sourceId instanceof Mineral)
+    {
+      this.TargetId = sourceId.id;
+    } else
+    {
+      this.TargetId = sourceId;
+    }
+
   }
 
 
@@ -42,7 +49,7 @@ export class HarvestAction extends Action {
       return false;
     }
     //Stay the fuck there and don't move
-    moveTo(creep,creep.pos,{priority:1000});
+    //moveTo(creep,creep.pos,{priority:1000});
     return creep.harvest(target) === OK;
   }
 

@@ -8,6 +8,7 @@ import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
 import { BuildReservation } from "../../lib/Reservations/BuildReservations";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
+import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 
 export class BuildingManager extends Delegation
 {
@@ -34,6 +35,10 @@ export class BuildingManager extends Delegation
       for(const creep of creeps)
       {
         let plan = creep.memory.plan;
+        if(plan.peek() instanceof IdleAction)
+        {
+          plan.clear(creep);
+        }
 
         let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
         let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);

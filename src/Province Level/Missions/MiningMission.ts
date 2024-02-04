@@ -23,9 +23,13 @@ export class MiningMission extends ProvinceMission
 {
   memory: MiningSiteMemory;
 
-  source: Id<Source>;
+  get visibility(): boolean {return this.source !== null;}
+
+  sourceId: Id<Source>;
+  get source() : Source | null { return Game.getObjectById(this.sourceId);}
   pos: RoomPosition;
-  container: Id<StructureContainer> | Id<ConstructionSite> | undefined;
+  containerId: Id<StructureContainer> | Id<ConstructionSite> | undefined;
+  get container() : StructureContainer | ConstructionSite | null | undefined { if(!this.containerId) {return undefined;} else {return Game.getObjectById(this.containerId);} }
 
   miningPos: RoomPosition;
   maxMiners : number = 1;
@@ -40,7 +44,7 @@ export class MiningMission extends ProvinceMission
   constructor(flag : Flag, province : Province) {
     super(flag,province);
 
-    this.source = flag.name.split('_',2)[1] as Id<Source>;
+    this.sourceId = flag.name.split('_',2)[1] as Id<Source>;
     this.pos = flag.pos;
 
     defaultsDeep(this.memory,defaultMiningSiteMemory);
@@ -54,58 +58,52 @@ export class MiningMission extends ProvinceMission
   {
     if(this.container)
     {
-      let container = Game.getObjectById(this.container);
-      if(container)
-      {
-        return container.pos;
-      }
+      return this.container.pos;
     }
 
     let originPos = this.province.storage ? this.province.storage.pos : this.province.spawns[0].pos;
-    let path = PathFinder.search(originPos,{pos: this.pos, range:1});
+    let path = PathFinder.search(originPos,{pos: this.pos, range:1},{swampCost:1,plainCost:1});
     return path.path[path.path.length - 1];
   }
 
   private resolveContainer() {
+    if(this.container)
+    {
+      return;
+    }
+
+    if(!this.visibility)
+    {
+      return;
+    }
+
     let containers = this.pos.findInRange(FIND_STRUCTURES,1).filter((s) : s is StructureContainer => s.structureType === STRUCTURE_CONTAINER);
     if(containers.length > 0)
     {
-      this.container = containers[0].id;
+      this.containerId = containers[0].id;
       return;
     }
     let containerConstruction = this.pos.findInRange(FIND_MY_CONSTRUCTION_SITES,1).filter((cs) => cs.structureType === STRUCTURE_CONTAINER);
     if(containerConstruction.length > 0)
     {
-      this.container = containerConstruction[0].id;
+      this.containerId = containerConstruction[0].id;
       return;
     }
-    this.container = undefined;
+    this.containerId = undefined;
   }
 
   run() : void {
-    let sufficientWorkParts = (hs : Creep[]) => flatten(hs.map((c) => c.body.map((bpd) => bpd.type).filter((bt) : bt is WORK => bt === WORK))).length >= SOURCE_HARVEST_PARTS;
+    let creeps = this.province.RequestParts([HARVESTER],WORK,SOURCE_HARVEST_PARTS+1,this.memory.Id,this.priority);
 
-    let creeps: Creep[] = [];
-    let creepCount = 0;
-    let requestAmount = 0;
-    do {
-      requestAmount++
-      creepCount = creeps.length;
-      creeps = this.province.RequestCreeps(HARVESTER, requestAmount, this.memory.Id, this.priority / requestAmount, false);
-    } while(!sufficientWorkParts(creeps) && creeps.length > creepCount);
-
-    if(!this.container)
+    if(this.container === undefined)
     {
       this.resolveContainer();
-      if(!this.container)
+      if(this.container === undefined)
       {
         this.miningPos.createConstructionSite(STRUCTURE_CONTAINER);
       }
     }
 
-    //Deliberately (b - a) to force descending order
-    creeps.sort((a,b) => countBy(b.body,(bpd) => bpd.type)[WORK] - countBy(a.body,(bpd) => bpd.type)[WORK])
-      .sort((a,b) => a.pos.getRangeTo(this.miningPos) - b.pos.getRangeTo(this.miningPos));
 
     let miningPosClaimed = false;
     for (const creep of creeps)
@@ -113,6 +111,7 @@ export class MiningMission extends ProvinceMission
       let onMiningPos = false;
       if(creep.pos.isEqualTo(this.miningPos))
       {
+        log(1,`Creep: ${creep.name} is on the mining Pos`);
         miningPosClaimed = true;
         onMiningPos = true;
       }
@@ -125,32 +124,31 @@ export class MiningMission extends ProvinceMission
       {
         if(creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 && this.container)
         {
-          let container = Game.getObjectById(this.container);
-          if(container)
-          {
-            if(container instanceof ConstructionSite)
+            if(this.container instanceof ConstructionSite)
             {
-              let build = new BuildAction(container,creep);
+              let build = new BuildAction(this.container,creep);
               plan.prepend(build);
-            } else if(container.hits < container.hitsMax)
+            } else if(this.container.hits < this.container.hitsMax)
             {
-              let repair = new RepairAction(container,creep);
+              let repair = new RepairAction(this.container,creep);
               plan.prepend(repair);
             } else if(!onMiningPos)
             {
+              log(1,`Creep: ${creep.name} is not on the Mining Pos and is full`);
               let adjacent = true;
               if(!creep.pos.isNearTo(this.miningPos))
               {
                 adjacent = false;
               }
+              log(1,`Creep ${creep.name} is adjacent to the Mining Pos: ${adjacent}`);
               let move = new MoveAction(this.miningPos,1);
-              let deposit = new FillAction(container,RESOURCE_ENERGY,creep);
+              let deposit = new FillAction(this.container,RESOURCE_ENERGY,creep);
               let returnMove = new MoveAction(creep.pos,0,true);
               if(!adjacent) {plan.prepend(returnMove);}
               plan.prepend(deposit);
               if(!adjacent) {plan.prepend(move);}
             }
-          }
+
 
         }
         continue;
@@ -171,14 +169,13 @@ export class MiningMission extends ProvinceMission
 
       }
 
-      let source = Game.getObjectById(this.source);
-      if(source && source.energy === 0)
+      if(this.source && this.source.energy === 0)
       {
         plan.prepend(new IdleAction());
         continue;
       }
 
-      let harvest = new HarvestAction(this.source);
+      let harvest = new HarvestAction(this.sourceId);
       plan.append(harvest);
     }
   }

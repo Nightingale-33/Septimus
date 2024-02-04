@@ -6,6 +6,6 @@ export function CartographerWrapLoop(loop: () => void)
   return () => {
     Profile("Movement Pre-Tick: ", () => preTick());
     loop();
-    Profile("Traffic Reconcile", () => reconcileTraffic({visualize: false}));
+    Profile("Traffic Reconcile", () => reconcileTraffic({visualize: true}));
   };
 }

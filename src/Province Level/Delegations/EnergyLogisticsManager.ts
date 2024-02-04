@@ -13,9 +13,9 @@ import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
 import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
 
-export class LogisticsManager extends Delegation
+export class EnergyLogisticsManager extends Delegation
 {
-    name: string = "LogisticsManager";
+    name: string = "EnergyLogisticsManager";
     get Id(): string { return this.province.name + "_" + this.name}
 
     province : Province;
@@ -31,7 +31,7 @@ export class LogisticsManager extends Delegation
     Execute(): void {
       //Figure out how many haulers we need
       let mineContainers = this.province.MiningSites
-        .map((mm) => mm.container ? Game.getObjectById(mm.container) : null)
+        .map((mm) => mm.container)
         .filter((c) : c is StructureContainer => c instanceof StructureContainer)
         .sort((a,b) => ResourceReservation.GetPostReservationStore(b,RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a,RESOURCE_ENERGY).used);
 
@@ -50,16 +50,7 @@ export class LogisticsManager extends Delegation
 
       let carryParts = Math.floor(haulable / CARRY_CAPACITY);
 
-      let sufficientCarryParts = (hs : Creep[]) => flatten(hs.map((c) => c.body.map((bpd) => bpd.type).filter((bt) : bt is CARRY => bt === CARRY))).length >= carryParts;
-
-      let creeps: Creep[] = [];
-      let creepCount = 0;
-      let requestAmount = 0;
-      do {
-        requestAmount++
-        creepCount = creeps.length;
-        creeps = this.province.RequestCreeps(HAULER, requestAmount, this.Id, carryParts*10, false);
-      } while(!sufficientCarryParts(creeps) && creeps.length > creepCount);
+      let creeps = this.province.RequestParts([HAULER],CARRY,carryParts,this.Id,carryParts*10);
 
       //Ask the haulers to do their job
       for(const creep of creeps)

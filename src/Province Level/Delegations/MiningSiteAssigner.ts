@@ -19,12 +19,12 @@ export class MiningSiteAssigner extends Delegation
 
 
   ShouldExecute(): boolean {
-      return Game.time % 25 == 0;
+      return this.province.MiningSites.length < this.province.sources.length;
     }
     Execute(): void {
       let miningSites = filter(this.province.ActiveMissions,(m) : m is MiningMission => m instanceof MiningMission) as MiningMission[];
       for (const source of this.province.sources) {
-        if(!miningSites.find((m) => m.source === source.id))
+        if(!miningSites.find((m) => m.sourceId === source.id))
         {
           let flagName = `${this.province.name}_${source.id}`;
           let colour = MiningMission.GetFlagColours();

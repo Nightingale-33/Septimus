@@ -1,6 +1,6 @@
 import { Prefecture } from "../Prefecture Level/Prefecture";
 import { log } from "../utils/Logging/Logger";
-import { defaultsDeep, filter, flatten } from "lodash";
+import { defaultsDeep, filter, flatten, sum } from "lodash";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Empire } from "../Empire Level/Empire";
@@ -10,9 +10,11 @@ import { Mission } from "../lib/Mission/Mission";
 import { Role } from "../lib/Roles/Role";
 import { TRACE_FLAG } from "../utils/Logging/FlagDecs";
 import { IdleAction } from "../lib/Actions/Creep/Action.Idle";
-import { LogisticsManager } from "./Delegations/LogisticsManager";
+import { EnergyLogisticsManager } from "./Delegations/EnergyLogisticsManager";
 import { MiningMission } from "./Missions/MiningMission";
 import { BuildingManager } from "./Delegations/BuildingManager";
+import { CountParts } from "../utils/CreepUtils";
+import * as wasi from "wasi";
 
 declare global {
   interface ProvinceMemory
@@ -52,7 +54,7 @@ export class Province {
   get Delegations(): Delegation[] {return this.GeneralDelegations.concat([this.MiningMan,this.Logistics,this.Spawning]);};
   Spawning: Spawner;
   MiningMan: MiningSiteAssigner;
-  Logistics: LogisticsManager;
+  Logistics: EnergyLogisticsManager;
   GeneralDelegations: Delegation[] = [];
 
   Initialised : boolean = false;
@@ -101,7 +103,7 @@ export class Province {
 
     this.MiningMan = new MiningSiteAssigner(this);
     this.Spawning = new Spawner(this);
-    this.Logistics = new LogisticsManager(this);
+    this.Logistics = new EnergyLogisticsManager(this);
     this.GeneralDelegations.push(new BuildingManager(this));
 
     this.Initialised = true;
@@ -160,11 +162,11 @@ export class Province {
   RequestCreeps(role: Role, amount: number, requestId : string, requestPriority: number, deRegisterExcess : boolean = true, requestSpawn : boolean = true) : Creep[]
   {
     //Gather pre-assigned
-    let assignedCreeps : Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId);;
+    let assignedCreeps : Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId);
     if(deRegisterExcess && assignedCreeps.length > amount)
     {
       //Trim the excess
-      assignedCreeps.slice(amount).forEach((c) => delete c.memory.assignmentId);
+      assignedCreeps.slice(amount).forEach((c) => {delete c.memory.assignmentId; delete c.memory.assignmentPriority;});
       assignedCreeps = assignedCreeps.slice(0,amount);
     }
 
@@ -182,7 +184,7 @@ export class Province {
         assignedCreeps.push(unassignedCreep);
         unassignedCreep.memory.assignmentId = requestId;
         unassignedCreep.memory.assignmentPriority = requestPriority;
-        log(1, `Claiming ${unassignedCreep.memory.role}: ${unassignedCreep.name} in ${this.name}`);
+        log(1, `Claiming ${unassignedCreep.memory.role}: ${unassignedCreep.name} in ${this.name} for: ${requestId}`);
       } else {
         let lessBusyCreep = this.creeps.find((c) =>
         c.memory.role === role && (c.memory.assignmentPriority ?? 0) < requestPriority);
@@ -190,7 +192,7 @@ export class Province {
           assignedCreeps.push(lessBusyCreep);
           lessBusyCreep.memory.assignmentId = requestId;
           lessBusyCreep.memory.assignmentPriority = requestPriority;
-          log(1, `Claiming Pre-Assigned ${lessBusyCreep.memory.role}: ${lessBusyCreep.name} in ${this.name}`);
+          log(1, `Claiming Pre-Assigned ${lessBusyCreep.memory.role}: ${lessBusyCreep.name} in ${this.name} for: ${requestId}`);
         } else
         {
           log(TRACE_FLAG,`Unable to find free ${role} in ${this.name}`);
@@ -214,6 +216,82 @@ export class Province {
       throw new Error("Somehow got to Spawn Requests without needing any");
     }
     this.Spawning.RequestCreepSpawn(role, requestId, requestPriority);
+
+    return assignedCreeps;
+  }
+
+  RequestParts(usableRoles: Role[], part: BodyPartConstant ,amount: number, requestId: string, requestPriority : number, deRegisterExcess : boolean = true, requestSpawn : boolean = true, spawnRoleSelector: () => Role = () => usableRoles[0]) : Creep[]
+  {
+    if(usableRoles.length === 0)
+    {
+      throw new Error("0 Roles designated when requesting by parts");
+    }
+    let countPart = (creeps : Creep[]) => sum(creeps,(c) => CountParts(c)[part]);
+    //Gather pre-assigned
+    let assignedCreeps : Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId)
+      .sort((a,b) => CountParts(b)[WORK] - CountParts(a)[WORK]);
+    if(deRegisterExcess && countPart(assignedCreeps) > amount)
+    {
+      let keptCreepNumber = 1;
+      while(countPart(assignedCreeps.slice(0,keptCreepNumber)) < amount)
+      {
+        keptCreepNumber++;
+      }
+      if(keptCreepNumber < assignedCreeps.length)
+      {
+        //Trim the excess
+        assignedCreeps.slice(keptCreepNumber).forEach((c) => {delete c.memory.assignmentId; delete c.memory.assignmentPriority;});
+        assignedCreeps = assignedCreeps.slice(0,keptCreepNumber);
+      }
+
+    }
+
+    //All done
+    if(countPart(assignedCreeps) >= amount)
+    {
+      return assignedCreeps;
+    }
+
+    //Claim existing
+    while (countPart(assignedCreeps) < amount) {
+      let unassignedCreep = this.creeps.find((c) =>
+        usableRoles.includes(c.memory.role) && c.memory.assignmentId === undefined);
+      if (unassignedCreep) {
+        assignedCreeps.push(unassignedCreep);
+        unassignedCreep.memory.assignmentId = requestId;
+        unassignedCreep.memory.assignmentPriority = requestPriority;
+        log(1, `Claiming ${unassignedCreep.memory.role}: ${unassignedCreep.name} in ${this.name} for: ${requestId}`);
+      } else {
+        let lessBusyCreep = this.creeps.find((c) =>
+          usableRoles.includes(c.memory.role) && (c.memory.assignmentPriority ?? 0) < requestPriority);
+        if(lessBusyCreep) {
+          assignedCreeps.push(lessBusyCreep);
+          lessBusyCreep.memory.assignmentId = requestId;
+          lessBusyCreep.memory.assignmentPriority = requestPriority;
+          log(1, `Claiming Pre-Assigned ${lessBusyCreep.memory.role}: ${lessBusyCreep.name} in ${this.name} for: ${requestId}`);
+        } else
+        {
+          log(TRACE_FLAG,`Unable to find free Creep in ${this.name}`);
+          break;
+        }
+      }
+    }
+
+    //
+
+    //Acquired enough
+    if(countPart(assignedCreeps) >= amount || !requestSpawn)
+    {
+      return assignedCreeps;
+    }
+
+    //Put in Spawn Requests
+    //Request additional
+    let difference = amount - countPart(assignedCreeps);
+    if (difference < 1) {
+      throw new Error("Somehow got to Spawn Requests without needing any");
+    }
+    this.Spawning.RequestCreepSpawn(spawnRoleSelector(), requestId, requestPriority);
 
     return assignedCreeps;
   }
