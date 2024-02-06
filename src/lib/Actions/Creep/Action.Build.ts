@@ -3,6 +3,7 @@ import { BuildReservation } from "../../Reservations/BuildReservations";
 import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { CountParts } from "../../../utils/CreepUtils";
 
 export const BUILD_ID: string = "B";
 
@@ -24,6 +25,10 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     let reservation: BuildReservation | undefined = undefined;
     if (creep) {
       let reservationAmount = Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY), constructionSite.progressTotal - constructionSite.progress);
+      if(reservationAmount <= 0)
+      {
+        throw new Error(`Negative Build Reservation: ${creep.id}, amount: ${reservationAmount}: ${JSON.stringify(creep)}`);
+      }
       reservation = new BuildReservation(creep, constructionSite, reservationAmount);
     }
     super(reservation);
@@ -65,8 +70,8 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     if (target && result == OK) {
       let thisReservation = Memory.BuildResv[target.id]?.find((r) => r.reservationId == this.ReservationId);
       if (thisReservation) {
-        let creepWorkParts = creep.body.map(bdp => bdp.type).filter(t => t == WORK).length;
-        thisReservation.amount = Math.min(0, thisReservation.amount - creepWorkParts * BUILD_POWER);
+        let creepWorkParts = CountParts(creep)[WORK];
+        thisReservation.amount = Math.max(0, thisReservation.amount - creepWorkParts * BUILD_POWER);
       }
     }
     return result == OK;
@@ -86,7 +91,8 @@ export class BuildAction extends ReservingAction<BuildReservation> {
   }
 
   apply(ac: AbstractCreep) {
-    ac.store.energy = this.Reservation ? ac.store.energy - this.Reservation.amount : 0;
+    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) - Math.abs(this.Reservation.amount) : 0;
+    ac.store.setUsed(RESOURCE_ENERGY,finalEnergy);
     ac.pos = this.pos;
   }
 }

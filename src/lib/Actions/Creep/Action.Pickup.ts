@@ -71,6 +71,7 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    ac.store.energy = this.Reservation ? ac.store.energy - this.Reservation.amount : ac.store.getCapacity(RESOURCE_ENERGY);
+    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) + Math.abs(this.Reservation.amount) : ac.store.getCapacity(RESOURCE_ENERGY);
+    ac.store.setUsed(RESOURCE_ENERGY,finalEnergy);
   }
 }

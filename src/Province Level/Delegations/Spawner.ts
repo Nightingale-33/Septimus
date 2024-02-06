@@ -40,6 +40,8 @@ export class Spawner extends Delegation {
       throw new Error("Spawner was executed with no requests");
     }
 
+    log(2,`Spawn Queue: ${JSON.stringify(this.SpawnRequests)}`);
+
     remove(this.SpawnRequests, (r) => r.inProgress && Game.creeps[r.inProgress]);
 
     let availableSpawns = this.province.spawns.filter((s) => !s.spawning);

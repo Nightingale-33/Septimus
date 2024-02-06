@@ -5,6 +5,7 @@ import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { log } from "../../../utils/Logging/Logger";
 
 export const FILL_ID = "F";
 
@@ -26,6 +27,10 @@ export class FillAction extends ReservingAction<ResourceReservation> {
     let reservation: ResourceReservation | undefined = undefined;
     if (creep) {
       let reservationAmount = Math.max(0, Math.min(creep.store.getUsedCapacity(resource), ResourceReservation.GetPostReservationStore(target, resource).free));
+      if(reservationAmount === 0)
+      {
+        throw new Error("Tried to fill with nothing");
+      }
       reservation = new ResourceReservation(creep, target, reservationAmount, resource);
     }
     super(reservation);
@@ -42,8 +47,9 @@ export class FillAction extends ReservingAction<ResourceReservation> {
   run(creep: Creep): boolean {
     let target = this.Target;
     if (this.pos) {
-      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 20, avoidCreeps: avoidCreeps });
+      let range = creep.pos.getRangeTo(this.pos);
+      let avoidCreeps = false;// creep.pos.getRangeTo(this.pos) < 5;
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 500 / range, avoidCreeps: avoidCreeps, visualizePathStyle:{stroke:"#2626FF"} },{avoidCreeps:true,priority:1000*range});
     }
     return (target ? creep.transfer(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
@@ -70,12 +76,13 @@ export class FillAction extends ReservingAction<ResourceReservation> {
 
   ApproxTimeLeft(creep: AbstractCreep): number {
     let expected = 1;
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    let travel = Math.max(this.pos.getRangeTo(creep.pos),1) - 1;
     return travel + expected;
   }
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    ac.store.energy = this.Reservation ? ac.store.energy - this.Reservation.amount : 0;
+    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) - Math.abs(this.Reservation.amount) : 0;
+    ac.store.setUsed(RESOURCE_ENERGY,finalEnergy);
   }
 }

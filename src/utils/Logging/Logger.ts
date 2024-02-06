@@ -10,7 +10,7 @@ declare global {
   // Syntax for adding proprties to `global` (ex "global.log")
   namespace NodeJS {
     interface Global {
-      SetLogLevel(level: number): boolean;
+      SetAuditLevel(level: number): boolean;
       SetAuditFlag(flag: LOG_FLAG): boolean;
       AuditFlagSet(flag: LOG_FLAG): boolean;
       ClearAuditFlag(flag: LOG_FLAG):boolean;
@@ -45,7 +45,7 @@ export function log(logLevel: number | LOG_FLAG, message: string) {
   console.log(messageToPrint);
 }
 
-global.SetLogLevel = function(logLevel : number) {
+global.SetAuditLevel = function(logLevel : number) {
   Memory.logLevel = Math.min(10,Math.max(0,logLevel));
   return true;
 }

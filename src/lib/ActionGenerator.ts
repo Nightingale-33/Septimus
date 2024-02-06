@@ -11,6 +11,7 @@ import { DISMANTLE_ID, DismantleAction } from "./Actions/Creep/Action.Dismantle"
 import { RECYCLE_ID, RecycleAction } from "./Actions/Creep/Action.Recycle";
 import { log } from "../utils/Logging/Logger";
 import { Action } from "./Action";
+import { DROP_ID, DropAction } from "./Actions/Creep/Action.Drop";
 
 export function ActionfromJSON(data: string): Action | null {
   let components = data.split(":", 2);
@@ -47,6 +48,10 @@ export function ActionfromJSON(data: string): Action | null {
 
     case PICKUP_ID: {
       return PickupAction.fromJSON(actionData);
+    }
+
+    case DROP_ID: {
+      return DropAction.fromJSON(actionData);
     }
 
     case WITHDRAW_ID: {

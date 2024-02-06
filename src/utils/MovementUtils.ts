@@ -27,3 +27,17 @@ export function GetPositionFromDirection(pos: RoomPosition, dir: number): RoomPo
 
   return new RoomPosition(pos.x + xDiff, pos.y + yDiff, pos.roomName);
 }
+
+const isObstacle = _.transform(
+  OBSTACLE_OBJECT_TYPES,
+  (o, type) => { o[type] = true; },
+  {}
+);
+
+export function isEnterable(pos : RoomPosition) {
+  return _.every(pos.look(), item =>
+    item.type === 'terrain' ?
+      item.terrain !== 'wall' :
+      !isObstacle[item.structure?.structureType ?? ""]
+  );
+}

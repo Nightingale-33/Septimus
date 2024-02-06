@@ -2,6 +2,7 @@ import { Action } from "../../Action";
 import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { CountParts } from "../../../utils/CreepUtils";
 
 export const UPGRADE_ID: string = "U";
 
@@ -42,14 +43,12 @@ export class UpgradeAction extends Action {
     return this.Target !== null && creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0;
   }
 
-  cleanup(creep : Creep) : void {};
-
   run(creep: Creep): boolean {
     let target = this.Target;
     if(this.pos)
     {
-      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep,{pos:this.pos,range:3},{priority:5,avoidCreeps:avoidCreeps});
+      let range = creep.pos.getRangeTo(this.pos);
+      moveTo(creep,{pos:this.pos,range:3},{priority:range,avoidCreeps:false});
     }
     return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
   }
@@ -59,7 +58,7 @@ export class UpgradeAction extends Action {
     {
       return 0;
     }
-    let creepWorkParts = countBy(creep.body, (bpd) => bpd.type)[WORK];
+    let creepWorkParts = CountParts(creep)[WORK];
     let remainingEnergy = creep.store.getUsedCapacity(RESOURCE_ENERGY);
     let expected = Math.ceil(remainingEnergy / (creepWorkParts));
     let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,3) - 3;
@@ -68,6 +67,6 @@ export class UpgradeAction extends Action {
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    ac.store.energy = 0;
+    ac.store.setUsed(RESOURCE_ENERGY,0);
   }
 }

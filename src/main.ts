@@ -6,6 +6,7 @@ import { MemHackWrapLoop } from "./utils/Memory/MemHack";
 import { Profile } from "./utils/Profiler/SimpleProfile";
 import { CacheManager } from "./utils/CacheManager";
 import { CartographerWrapLoop } from "./utils/Movement/MovementWrapper";
+import * as Stats from "./utils/stats";
 
 console.log("GLOBAL RESET");
 
@@ -36,4 +37,6 @@ export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(()
   Profile(`Empire Run`, () => global.empire?.Run());
 
   Profile(`Empire Tidy`, () => global.empire?.Tidy());
+
+  Stats.exportStats();
 })));

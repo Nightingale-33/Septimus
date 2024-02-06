@@ -8,82 +8,66 @@ import { ResourceReservation } from "../../lib/Reservations/ResourceReservations
 import { BuildReservation } from "../../lib/Reservations/BuildReservations";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
+import { Behaviour, Planner } from "../../lib/Planning/Planner";
+import { Action } from "lib/Action";
+import { AbstractCreep } from "lib/Planning/AbstractCreep";
+import { EnergyAcquisitionBehaviour } from "../../lib/Planning/Behaviours/EnergyAcquisition";
 
-export class BuildingManager extends Delegation
-{
-    name: string = "BuildingManager";
-    province : Province;
+export class BuildingManager extends Delegation implements Behaviour {
+  name: string = "BuildingManager";
+  province: Province;
 
-    get ConstructionSites() : ConstructionSite[] {return global.cache.UseValue(() => flatten(this.province.Prefectures.map((p) => p.room.find(FIND_MY_CONSTRUCTION_SITES))),0,this.Id+"_Sites")}
+  get ConstructionSites(): ConstructionSite[] {
+    return global.cache.UseValue(() => flatten(this.province.Prefectures.map((p) => p.room.find(FIND_MY_CONSTRUCTION_SITES))), 0, this.Id + "_Sites");
+  }
 
-    constructor(province : Province) {
-      super();
-      this.province = province;
+  constructor(province: Province) {
+    super();
+    this.province = province;
+    this.Planner = new Planner(this);
+    this.EnergyAcquirer = new EnergyAcquisitionBehaviour(this.province);
+  }
+
+  Planner: Planner;
+  EnergyAcquirer: Behaviour;
+
+  Interrupt(creep: AbstractCreep): Action | null {
+    if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+    {
+      return this.EnergyAcquirer.Interrupt(creep);
     }
+    return null;
+  }
 
-    get Id(): string {return this.province.name + "_" + this.name}
-    ShouldExecute(): boolean {
-      let totalCS = this.ConstructionSites.length;
-      return totalCS > 0;
+  PlanNext(creep: AbstractCreep): Action | null {
+    let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
+    let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
+    if (creepUsed < creepFree) {
+      return this.EnergyAcquirer.PlanNext(creep);
+    } else {
+      //Build
+      let bestSite = min(this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal), (cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
+      return new BuildAction(bestSite, creep);
     }
-    Execute(): void {
-      //Determine how many builders (Workers)
-      let creeps = this.province.RequestCreeps(WORKER,this.ConstructionSites.length,this.Id,this.ConstructionSites.length);
+  }
 
-      //Make them do their job
-      for(const creep of creeps)
-      {
-        let plan = creep.memory.plan;
-        if(plan.peek() instanceof IdleAction)
-        {
-          plan.clear(creep);
-        }
+  get Id(): string {
+    return this.province.name + "_" + this.name;
+  }
 
-        if(!plan.isEmpty())
-        {
-          continue;
-        }
+  ShouldExecute(): boolean {
+    let totalCS = this.ConstructionSites.length;
+    return totalCS > 0;
+  }
 
-        let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
-        let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-        if(creepUsed < creepFree && !(plan.peek()?.Name === "Withdraw" || plan.peek()?.Name === "Pickup"))
-        {
-          //Restock
-          //Get some energy
-          //Replace with logistics network
-          let storage = this.province.storage;
-          let resources = creep.room.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.resourceType == RESOURCE_ENERGY && ResourceReservation.GetPostReservationStore(r,RESOURCE_ENERGY).used >= creepFree });
-          let containers = creep.room.find(FIND_STRUCTURES, {
-            filter: (s): s is StructureContainer => s instanceof StructureContainer && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree
-          });
-          if(storage && ResourceReservation.GetPostReservationStore(storage,RESOURCE_ENERGY).used >= creepFree)
-          {
-            let withdraw = new WithdrawAction(storage,RESOURCE_ENERGY,creep);
-            plan.append(withdraw);
-            continue;
-          }
-          if(resources.length > 0)
-          {
-            let closest = min(resources,(r) => r.pos.getRangeTo(creep.pos));
-            let pickup = new PickupAction(closest,creep);
-            plan.append(pickup);
-            continue;
-          }
-          if(containers.length > 0)
-          {
-            let closest = min(containers,(c) => c.pos.getRangeTo(creep.pos));
-            let withdraw = new WithdrawAction(closest,RESOURCE_ENERGY,creep);
-            plan.append(withdraw);
-            continue;
-          }
-        } else if(creepUsed > creepFree && !(plan.peek()?.Name === "Build"))
-        {
-          //Build
-          let bestSite = min(this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal),(cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
-          let build = new BuildAction(bestSite,creep);
-          plan.append(build);
-        }
-      }
+  Execute(): void {
+    //Determine how many builders (Workers)
+    let creeps = this.province.RequestCreeps(WORKER, this.ConstructionSites.length, this.Id, this.ConstructionSites.length);
+
+    //Make them do their job
+    for (const creep of creeps) {
+      this.Planner.Plan(creep);
     }
+  }
 
 }

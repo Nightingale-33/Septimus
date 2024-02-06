@@ -9,6 +9,7 @@ import { defaultsDeep } from "lodash";
 import { BuildReservation } from "../lib/Reservations/BuildReservations";
 import { ResourceReservation } from "../lib/Reservations/ResourceReservations";
 import { RepairReservation } from "../lib/Reservations/RepairReservations";
+import { ReservationManager } from "./ReservationManager";
 
 declare global {
   interface Memory {
@@ -89,12 +90,19 @@ export class Empire {
     }
 
     this.Delegations.push(global.cache);
+    this.Delegations.push(new ReservationManager());
 
     this.Initialised = true;
     log(1, "Empire Initialised");
   }
 
   Run() {
+    if(Game.cpu.tickLimit < 500)
+    {
+      log(1,"Skipping tick due to low bucket");
+      return;
+    }
+
     //Check the creep plans
     Profile("Creep Plan Checks", () => {
       for (const c in Game.creeps) {
@@ -171,7 +179,9 @@ export class Empire {
           log(1,`Creep: ${c} has no memory and is broken. Suiciding`);
           creep.suicide();
         }
-        creep.executePlan();
+        Profile(`Creep: ${c} Plan Execution`, () => {
+          creep.executePlan();
+        });
       }
     });
   }

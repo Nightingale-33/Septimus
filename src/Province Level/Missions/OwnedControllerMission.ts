@@ -8,96 +8,83 @@ import { ResourceReservation } from "../../lib/Reservations/ResourceReservations
 import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
 import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
+import { Behaviour, Planner } from "../../lib/Planning/Planner";
+import { Action } from "lib/Action";
+import { AbstractCreep } from "lib/Planning/AbstractCreep";
+import { EnergyAcquisitionBehaviour } from "../../lib/Planning/Behaviours/EnergyAcquisition";
 
 interface OwnedControllerMemory extends ProvinceMissionMemory {
 }
 
-const defaultOwnedControllerMemory : OwnedControllerMemory = {
-  Id: "",
+const defaultOwnedControllerMemory: OwnedControllerMemory = {
+  Id: ""
 };
 
-export class OwnedControllerMission extends ProvinceMission {
+export class OwnedControllerMission extends ProvinceMission implements Behaviour {
   memory: OwnedControllerMemory;
 
-  priority:number = 1;
+  priority: number = 1;
 
-  controllerId : Id<StructureController>;
+  controllerId: Id<StructureController>;
 
-  static GetFlagColours() : {primary: ColorConstant, secondary: ColorConstant}
-  {
-    return {primary:COLOR_PURPLE,secondary:COLOR_WHITE};
+  get controller(): StructureController | null {
+    return Game.getObjectById(this.controllerId);
   }
 
-  constructor(flag:Flag, province: Province) {
-    super(flag,province);
-    defaultsDeep(this.memory,defaultOwnedControllerMemory);
-    this.controllerId = flag.name.split('_',2)[1] as Id<StructureController>;
+  static GetFlagColours(): { primary: ColorConstant, secondary: ColorConstant } {
+    return { primary: COLOR_PURPLE, secondary: COLOR_WHITE };
+  }
+
+  constructor(flag: Flag, province: Province) {
+    let controllerId = flag.name.split("_", 2)[1] as Id<StructureController>;
+    super(flag, province,`${province.name}_${controllerId}`);
+    defaultsDeep(this.memory, defaultOwnedControllerMemory);
+    this.controllerId = controllerId
+    this.Planner = new Planner(this);
+    this.energyAcquisition = new EnergyAcquisitionBehaviour(this.province);
+  }
+
+  Planner: Planner;
+  energyAcquisition : Behaviour;
+
+  Interrupt(creep: AbstractCreep): Action | null {
+    if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+    {
+      return this.energyAcquisition.Interrupt(creep);
+    }
+    return null;
+  }
+
+  PlanNext(creep: AbstractCreep): Action | null {
+    if (!this.controller) {
+      return null;
+    }
+
+    let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
+    if (creepUsed === 0) {
+      return this.energyAcquisition.PlanNext(creep);
+    } else {
+      return new UpgradeAction(this.controller);
+    }
   }
 
   run(): void {
     let controller = Game.getObjectById(this.controllerId);
-    if(!controller)
-    {
-      log(1,"Unable to get owned controller");
+    if (!controller) {
+      log(1, "Unable to get owned controller");
       return;
     }
 
-    let creeps = this.province.RequestCreeps(WORKER,1,this.memory.Id,this.priority,false,true);
+    let levelAmount = controller.level === 8 ? 1 : controller.level;
+    let creeps = this.province.RequestCreeps(WORKER, levelAmount, this.memory.Id, this.priority);
 
-    let requestAmount = controller.level;
-    let requestPriority = controller.ticksToDowngrade < 2500 ? 50 : this.priority;
+    let requestAmount = Math.max(levelAmount, Math.ceil(this.province.Logistics.SurplusEnergy / 1000));
+    let requestPriority = controller.ticksToDowngrade < 2500 ? 500 : this.priority;
 
-    creeps = this.province.RequestCreeps(WORKER, requestAmount,this.memory.Id,requestPriority,false,false);
+    creeps = this.province.RequestCreeps(WORKER, requestAmount, this.memory.Id, requestPriority, { deRegisterExcess: false });
 
-    for(const creep of creeps)
-    {
-      //Behaviour logic
-      let plan = creep.memory.plan;
-      if(plan.peek() instanceof IdleAction)
-      {
-        plan.clear(creep);
-      }
-      if(!plan.isEmpty())
-      {
-        continue;
-      }
-
-      let creepUsed = creep.store.getUsedCapacity(RESOURCE_ENERGY);
-      let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
-      if(creepUsed < creepFree)
-      {
-        //Get some energy
-        //Replace with logistics network
-        let storage = this.province.storage;
-        let resources = creep.room.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.resourceType == RESOURCE_ENERGY && ResourceReservation.GetPostReservationStore(r,RESOURCE_ENERGY).used >= creepFree });
-        let containers = creep.room.find(FIND_STRUCTURES, {
-          filter: (s): s is StructureContainer => s instanceof StructureContainer && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree
-        });
-        if(storage && ResourceReservation.GetPostReservationStore(storage,RESOURCE_ENERGY).used >= creepFree)
-        {
-          let withdraw = new WithdrawAction(storage,RESOURCE_ENERGY,creep);
-          plan.append(withdraw);
-          continue;
-        }
-        if(resources.length > 0)
-        {
-          let closest = min(resources,(r) => r.pos.getRangeTo(creep.pos));
-          let pickup = new PickupAction(closest,creep);
-          plan.append(pickup);
-          continue;
-        }
-        if(containers.length > 0)
-        {
-          let closest = min(containers,(c) => c.pos.getRangeTo(creep.pos));
-          let withdraw = new WithdrawAction(closest,RESOURCE_ENERGY,creep);
-          plan.append(withdraw);
-          continue;
-        }
-      } else
-      {
-        let upgrade = new UpgradeAction(controller);
-        plan.append(upgrade);
-      }
+    for (const creep of creeps) {
+      this.Planner.Plan(creep);
     }
   }
 }

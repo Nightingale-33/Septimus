@@ -48,7 +48,7 @@ export class ResourceReservation extends Reservation<Creep | AbstractCreep, _Has
   }
 
   private static HasStore<T extends object>(obj: T): obj is T & { store: StoreDefinition } {
-    return "store" in obj;
+    return obj !== undefined && "store" in obj;
   }
 
   static GetPostReservationStore(target: _HasId & ({ store: StoreDefinition } | {

@@ -30,17 +30,6 @@ Creep.prototype.checkPlan = function() {
 };
 
 Creep.prototype.executePlan = function() {
-  if (CHATTY) {
-    let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
-    if (this.memory.plan.Steps.length > 3) {
-      chatPlan += "+";
-      let additional = this.memory.plan.Steps.length - 3;
-      if (additional > 1) {
-        chatPlan += additional;
-      }
-    }
-    this.say(chatPlan);
-  }
   while (!this.memory.plan.isEmpty()) {
     let step = this.memory.plan.Steps[0];
     if (!step.isValid(this)) {
@@ -52,6 +41,22 @@ Creep.prototype.executePlan = function() {
       let result = step.run(this);
       //Todo: Use results to try and multi-task
       break;
+    }
+  }
+  if (CHATTY) {
+    if(!this.memory.plan.isEmpty()) {
+      let chatPlan = this.memory.plan.Steps.map(a => a.Chat).slice(0, 3).join(">");
+      if (this.memory.plan.Steps.length > 3) {
+        chatPlan += "+";
+        let additional = this.memory.plan.Steps.length - 3;
+        if (additional > 1) {
+          chatPlan += additional;
+        }
+      }
+      this.say(chatPlan);
+    } else
+    {
+      this.say("🛌");
     }
   }
 };

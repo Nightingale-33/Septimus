@@ -28,7 +28,7 @@ export class MoveAction extends Action {
   }
 
   toJSON(): string {
-    return MOVE_ID + ":" + this.Target.x + "," + this.Target.y + "," + this.Target.roomName + "," + this.Range;
+    return MOVE_ID + ":" + this.Target.x + "," + this.Target.y + "," + this.Target.roomName + "," + this.Range + "," + this.Shove;
   }
 
   static fromJSON(data: string) {
@@ -50,8 +50,8 @@ export class MoveAction extends Action {
   }
 
   run(creep: Creep): boolean {
-    let avoidCreeps = this.ApproxTimeLeft(creep) < 5;
-    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? 500 : 1,visualizePathStyle:{}, avoidCreeps: avoidCreeps},{visualizePathStyle:{stroke:"#FF0000"}});
+    let avoidCreeps = !this.Shove && creep.pos.getRangeTo(this.Target) < 5;
+    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? Infinity : 1,visualizePathStyle:{}, avoidCreeps: avoidCreeps},{visualizePathStyle:{stroke:"#FF0000"}, avoidCreeps:true});
     return result == OK || result == ERR_TIRED;
   }
 

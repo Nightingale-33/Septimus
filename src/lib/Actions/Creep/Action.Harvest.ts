@@ -48,8 +48,8 @@ export class HarvestAction extends Action {
   run(creep: Creep): boolean {
     let target = this.Target;
     if (this.pos) {
-      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 250, avoidCreeps: avoidCreeps });
+      let prio = creep.pos.getRangeTo(this.pos) === 1 ? 500 : 250;
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: prio, avoidCreeps: false }, {avoidCreeps:true});
     }
     if (!target) {
       return false;
@@ -58,13 +58,20 @@ export class HarvestAction extends Action {
   }
 
   ApproxTimeLeft(creep: AbstractCreep): number {
-    let expected = SOURCE_ENERGY_CAPACITY / CountParts(creep)[WORK] * HARVEST_POWER;
+    let expected = 0;
+    if(this.Target instanceof Source)
+    {
+      expected = this.Target.energy / CountParts(creep)[WORK] * HARVEST_POWER;
+    } else if(this.Target instanceof Mineral)
+    {
+      expected = this.Target.mineralAmount / CountParts(creep)[WORK] * HARVEST_POWER;
+    }
     let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
     return travel + expected;
   }
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    ac.store.energy = ac.store.getCapacity(RESOURCE_ENERGY);
+    ac.store.setUsed(RESOURCE_ENERGY,ac.store.getCapacity(RESOURCE_ENERGY));
   }
 }

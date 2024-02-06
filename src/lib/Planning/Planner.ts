@@ -1,9 +1,13 @@
 import { AbstractCreep } from "./AbstractCreep";
 import { Action } from "../Action";
 import { reduce } from "lodash";
+import { log } from "../../utils/Logging/Logger";
+import { TRACE_FLAG } from "../../utils/Logging/FlagDecs";
+import { IdleAction } from "../Actions/Creep/Action.Idle";
 
 export interface Behaviour
 {
+  Interrupt(creep: AbstractCreep) : Action | null;
   PlanNext(creep: AbstractCreep) : Action | null;
 }
 
@@ -12,7 +16,7 @@ export class Planner
   PlanAheadTime: number;
   decider: Behaviour;
 
-  constructor(lookForward: number = 10, behaviour: Behaviour) {
+  constructor(behaviour: Behaviour,lookForward: number = 10) {
     this.PlanAheadTime = lookForward;
     this.decider = behaviour;
   }
@@ -20,12 +24,26 @@ export class Planner
   Plan(creep: Creep)
   {
     let plan = creep.memory.plan;
+    if (plan.peek() instanceof IdleAction) {
+      plan.clear(creep);
+    }
     let initialCopy = new AbstractCreep(creep);
+    let interruptAction = this.decider.Interrupt(initialCopy)
+    if(interruptAction)
+    {
+      log(1,`Plan interrupt action: ${interruptAction.Name} for ${creep.name}`);
+      plan.prepend(interruptAction);
+    }
     let initialState : [AbstractCreep,number] = [initialCopy,0];
+
     let [plannedState,executionTime]  = reduce(plan.Steps, ([ac,time],act) => {
+      let newTime = time + act.ApproxTimeLeft(ac);
       act.apply(ac);
-      return [ac,time + act.ApproxTimeLeft(ac)];
+      return [ac,newTime];
       },initialState);
+
+    log(TRACE_FLAG, `Creep: ${creep.name} has a plan of ${plan.Steps.length} length and taking: ${executionTime}Ticks`);
+    log(TRACE_FLAG, `Planning from a state of: ${JSON.stringify(plannedState)}`);
 
     while(executionTime < this.PlanAheadTime)
     {
@@ -33,8 +51,9 @@ export class Planner
       if(nextStep)
       {
         plan.append(nextStep);
+        executionTime += Math.max(1,nextStep.ApproxTimeLeft(plannedState));
         nextStep.apply(plannedState);
-        executionTime += nextStep.ApproxTimeLeft(plannedState);
+        log(TRACE_FLAG, `State after action: ${nextStep.Name}: Time:${executionTime}, State: ${JSON.stringify(plannedState)}`);
       } else
       {
         break;

@@ -13,8 +13,8 @@ export abstract class ProvinceMission extends Mission {
 
   abstract priority: number;
 
-  constructor(flag: Flag, province: Province) {
-    super(flag);
+  constructor(flag: Flag, province: Province, Id: string) {
+    super(flag,Id);
     this.province = province;
   }
 }

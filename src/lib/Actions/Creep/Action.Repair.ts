@@ -91,6 +91,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    ac.store.energy = this.Reservation ? ac.store.energy - this.Reservation.amount : 0;
+    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) - Math.abs(this.Reservation.amount / REPAIR_POWER) : 0;
+    ac.store.setUsed(RESOURCE_ENERGY,finalEnergy);
   }
 }

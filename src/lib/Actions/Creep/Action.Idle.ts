@@ -5,7 +5,7 @@ export const IDLE_ID: string = "I";
 
 export class IdleAction extends Action {
   ApproxTimeLeft(creep: AbstractCreep): number {
-      return 0;
+      return 100000;
   }
   constructor(say: string | undefined = undefined) {
     super();

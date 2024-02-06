@@ -12,9 +12,9 @@ export abstract class Mission {
   empire: Empire;
   flag: Flag;
 
+  get Id(): string {return this.memory.Id;};
 
-
-  protected constructor(flag : Flag) {
+  protected constructor(flag : Flag, Id : string) {
     this.flag = flag;
     this.pos = flag.pos;
     //Done to acquire the flag memory object
@@ -22,7 +22,7 @@ export abstract class Mission {
     this.memory = flag.memory;
     if(!this.memory.Id)
     {
-      this.memory.Id = GetRandomId();
+      this.memory.Id = Id;
     }
     this.empire = global.empire!;
   }

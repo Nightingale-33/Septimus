@@ -75,6 +75,7 @@ export class ErrorMapper {
         loop();
       } catch (e) {
         if (e instanceof Error) {
+          console.log("<span style='color:red'>ERROR</span>");
           if ("sim" in Game.rooms) {
             const message = `Source maps don't work in the simulator - displaying original error`;
             console.log(`<span style='color:red'>${message}<br>${_.escape(e.stack)}</span>`);
