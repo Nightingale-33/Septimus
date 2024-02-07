@@ -35,4 +35,6 @@ export function exportStats() {
   Memory.stats.cpu.bucket        = Game.cpu.bucket;
   Memory.stats.cpu.limit         = Game.cpu.limit;
   Memory.stats.cpu.used          = Game.cpu.getUsed();
+
+  Memory.stats.totalCreeps       = Object.keys(Game.creeps).length;
 }

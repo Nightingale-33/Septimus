@@ -46,13 +46,13 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       return this.province.storage.pos;
     } else
     {
-      return this.province.spawns[0].pos;
+      return this.province.FocalPoint;
     }
   }
 
-  Interrupt(creep: AbstractCreep): Action | null {
+  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
-    if(creepFree > 0)
+    if(creepFree > 0 && afterFirst && !afterFirst.pos.isNearTo(creep.pos) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
     {
       let nearbyOpportunity = this.sources.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree);
       if(nearbyOpportunity.length > 0)
@@ -94,7 +94,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
       let fillTarget: AnyStoreStructure | undefined = undefined;
-      let sortedSinks = sortBy(this.sinks, (s) => s.pos.getRangeTo(creep.pos));
+      let sortedSinks = sortBy(sortBy(this.sinks, (s) => s.pos.getRangeTo(creep.pos)),(s) => this.sinkTypeOrder.indexOf(s.structureType));
       for (const sink of sortedSinks) {
         if (ResourceReservation.GetPostReservationStore(sink, RESOURCE_ENERGY).free > 0) {
           fillTarget = sink;
@@ -137,6 +137,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     return true;
   }
 
+  sinkTypeOrder: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_SPAWN, STRUCTURE_STORAGE];
+
   lastCreepsOwned:number = 0;
   Execute(): void {
     let carryParts = 0;
@@ -146,17 +148,16 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       .filter((c): c is StructureContainer => c instanceof StructureContainer)
       .sort((a, b) => ResourceReservation.GetPostReservationStore(b, RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a, RESOURCE_ENERGY).used);
 
-    carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getRangeTo(this.storagePos)))/5;
+    carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getRangeTo(this.storagePos)));
 
     let droppedResources = flatten(this.province.Prefectures.map((p) => p.room.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.amount >= 1000 })));
 
     //Sources will likely later include more sources
     this.sources = [...mineContainers, ...droppedResources];
 
-    const sinkTypes: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_STORAGE];
     this.sinks = this.province.Capital.room.find(FIND_STRUCTURES)
-      .filter((s): s is AnyStoreStructure => sinkTypes.includes(s.structureType))
-      .sort((a, b) => sinkTypes.indexOf(a.structureType) - sinkTypes.indexOf(b.structureType));
+      .filter((s): s is AnyStoreStructure => this.sinkTypeOrder.includes(s.structureType))
+      .sort((a, b) => this.sinkTypeOrder.indexOf(a.structureType) - this.sinkTypeOrder.indexOf(b.structureType));
 
     let haulable = sum(this.sources, (s) => {
       if (s instanceof Resource) {
@@ -171,12 +172,12 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     let haulableCarryParts = haulable / (CARRY_CAPACITY * 5);
 
-    carryParts = Math.min(haulableCarryParts, carryParts);
+    carryParts = Math.max(haulableCarryParts, carryParts);
 
     let spawnPred = (province: Province) => {
       return this.lastCreepsOwned === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75;
     };
-    let creeps = this.province.RequestParts([HAULER], CARRY, carryParts, this.Id, carryParts * 10, { deRegisterExcess: false, spawnPredicate:spawnPred });
+    let creeps = this.province.RequestParts([HAULER], CARRY, carryParts, this.Id, carryParts * 10, { deRegisterExcess: false, spawnPredicate:spawnPred, maxCreeps: carryParts/2 });
     this.lastCreepsOwned = creeps.length;
 
     //Ask the haulers to do their job

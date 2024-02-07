@@ -4,6 +4,7 @@ import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Province } from "../Province Level/Province";
 import { OwnedControllerMission } from "../Province Level/Missions/OwnedControllerMission";
 import { DistanceTransform, DTDisplayRooms } from "./RoomPlanning/DistanceTransform";
+import { TowerDelegation } from "./TowerDelegation";
 
 declare global {
   interface RoomMemory
@@ -15,6 +16,8 @@ declare global {
 export class Prefecture {
   Initialised: boolean = false;
 
+  get memory() : RoomMemory { return this.room.memory; }
+
   province: Province;
 
   Delegations: Delegation[] = [];
@@ -23,6 +26,18 @@ export class Prefecture {
 
   RoomName: string;
   get room() : Room {return Game.rooms[this.RoomName];}
+
+  get towers() : StructureTower[] {return global.cache.UseValue(() => this.room.find(FIND_MY_STRUCTURES).filter((s) : s is StructureTower => s instanceof StructureTower), 0, `${this.RoomName}_Towers`);}
+
+  get controller() : StructureController {
+    if(!this.room.controller)
+    {
+      throw new Error("Room without controller marked as Prefecture");
+    } else
+    {
+      return this.room.controller;
+    }
+  }
 
   get sources() : Source[] { return this.room.find(FIND_SOURCES); }
 
@@ -35,6 +50,9 @@ export class Prefecture {
   Initialise()
   {
     this.Initialised = true;
+
+    this.Delegations.push(new TowerDelegation(this.province,this));
+
     log(2,`Prefecture at: ${this.RoomName} initialised`);
   }
 
@@ -60,9 +78,7 @@ export class Prefecture {
       }
     }
 
-    if(Game.cpu.tickLimit > 250)
-    {
-      if(!this.distanceTransformer.data)
+      if(!this.distanceTransformer.data && (Game.cpu.tickLimit - Game.cpu.getUsed()) > 250)
       {
         Profile(`${this.RoomName} Distance Transform`, () => {
           this.distanceTransformer.calculate(this.room.getTerrain());
@@ -73,6 +89,5 @@ export class Prefecture {
       {
         this.distanceTransformer.display(this.room.visual);
       }
-    }
   }
 }

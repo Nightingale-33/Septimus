@@ -16,10 +16,13 @@ import { BuildingManager } from "./Delegations/BuildingManager";
 import { CountParts } from "../utils/CreepUtils";
 import * as wasi from "wasi";
 import { options } from "tsconfig-paths/lib/options";
+import { BaseLocationDecider } from "../Prefecture Level/RoomPlanning/BaseLocationDecider";
+import { RepairingManager } from "./Delegations/MaintenanceManager";
 
 declare global {
   interface ProvinceMemory {
     AttachedPrefectures: string[];
+    FocalPoint?: RoomPosition
   }
 
   interface CreepMemory {
@@ -51,13 +54,13 @@ const defaultCreepRequestOptions: creepRequestOptions = {
   deRegisterExcess: true,
   requestSpawn: true,
   spawnRoleSelector: (roles) => roles[0],
-  spawnPredicate: (province) => (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75,
+  spawnPredicate: (province) => province.Capital.room.energyAvailable >= 300 && (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75,
   maxCreeps: Infinity,
   stealCreeps: false
 };
 
 const defaultsProvinceMemory: ProvinceMemory = {
-  AttachedPrefectures: []
+  AttachedPrefectures: [],
 };
 
 export class Province {
@@ -80,12 +83,28 @@ export class Province {
   }
 
   get Delegations(): Delegation[] {
-    return this.GeneralDelegations.concat([this.MiningMan, this.Logistics, this.Spawning]);
+    return this.GeneralDelegations.concat([this.MiningMan, this.Logistics, this.Spawning, this.Building, this.Repairing]);
   };
+
+  get FocalPoint(): RoomPosition {
+    if(this.memory.FocalPoint)
+    {
+      return this.memory.FocalPoint;
+    }
+    if(this.spawns.length > 0)
+    {
+      return this.spawns[0].pos;
+    }
+
+    log(1,"Really shouldn't get here, as that means no spawns");
+    return new RoomPosition(25,25,this.Capital.RoomName);
+  }
 
   Spawning: Spawner;
   MiningMan: MiningSiteAssigner;
   Logistics: EnergyLogisticsManager;
+  Building : BuildingManager;
+  Repairing : RepairingManager;
   GeneralDelegations: Delegation[] = [];
 
   Initialised: boolean = false;
@@ -98,8 +117,12 @@ export class Province {
     return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.sources)), 100, "Prov" + this.name + "Sources");
   }
 
+  get structures() : Structure[] {
+    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.room.find(FIND_STRUCTURES))), 0, "Prov" + this.name + "Structures");
+  }
+
   get spawns(): StructureSpawn[] {
-    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.room.find(FIND_MY_SPAWNS))), 50, "Prov" + this.name + "Spawns");
+    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.room.find(FIND_MY_SPAWNS))), 0, "Prov" + this.name + "Spawns");
   }
 
   get storage(): StructureStorage | null {
@@ -133,7 +156,10 @@ export class Province {
     this.MiningMan = new MiningSiteAssigner(this);
     this.Spawning = new Spawner(this);
     this.Logistics = new EnergyLogisticsManager(this);
-    this.GeneralDelegations.push(new BuildingManager(this));
+    this.Building = new BuildingManager(this);
+    this.Repairing = new RepairingManager(this);
+
+    this.Capital.Delegations.push(new BaseLocationDecider(this, this.Capital));
 
     this.Initialised = true;
     log(1, `Province at: ${this.Capital.RoomName} Initialised`);

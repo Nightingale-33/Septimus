@@ -7,7 +7,7 @@ import { IdleAction } from "../Actions/Creep/Action.Idle";
 
 export interface Behaviour
 {
-  Interrupt(creep: AbstractCreep) : Action | null;
+  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined) : Action | null;
   PlanNext(creep: AbstractCreep) : Action | null;
 }
 
@@ -23,12 +23,28 @@ export class Planner
 
   Plan(creep: Creep)
   {
+    if(creep.spawning)
+    {
+      return;
+    }
+
     let plan = creep.memory.plan;
     if (plan.peek() instanceof IdleAction) {
       plan.clear(creep);
     }
     let initialCopy = new AbstractCreep(creep);
-    let interruptAction = this.decider.Interrupt(initialCopy)
+    let afterFirst: AbstractCreep = new AbstractCreep(initialCopy);
+    let interruptAction: Action | null = null;
+    let firstAction = plan.peek();
+    if(!firstAction)
+    {
+      interruptAction = this.decider.Interrupt(initialCopy,undefined,undefined);
+    } else
+    {
+      firstAction.apply(afterFirst);
+      interruptAction = this.decider.Interrupt(initialCopy,afterFirst,firstAction);
+    }
+
     if(interruptAction)
     {
       log(1,`Plan interrupt action: ${interruptAction.Name} for ${creep.name}`);

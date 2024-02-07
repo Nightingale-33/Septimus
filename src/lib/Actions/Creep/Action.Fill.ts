@@ -29,7 +29,7 @@ export class FillAction extends ReservingAction<ResourceReservation> {
       let reservationAmount = Math.max(0, Math.min(creep.store.getUsedCapacity(resource), ResourceReservation.GetPostReservationStore(target, resource).free));
       if(reservationAmount === 0)
       {
-        throw new Error("Tried to fill with nothing");
+        log(1,`Tried to fill: ${target.id} with nothing`);
       }
       reservation = new ResourceReservation(creep, target, reservationAmount, resource);
     }

@@ -1,13 +1,9 @@
 import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
-import { flatten, min } from "lodash";
+import { flatten, max, min } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
-import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
-import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
-import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
 import { BuildReservation } from "../../lib/Reservations/BuildReservations";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
-import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
@@ -31,10 +27,10 @@ export class BuildingManager extends Delegation implements Behaviour {
   Planner: Planner;
   EnergyAcquirer: Behaviour;
 
-  Interrupt(creep: AbstractCreep): Action | null {
+  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
     {
-      return this.EnergyAcquirer.Interrupt(creep);
+      return this.EnergyAcquirer.Interrupt(creep,afterFirst,nextAction);
     }
     return null;
   }
@@ -62,7 +58,9 @@ export class BuildingManager extends Delegation implements Behaviour {
 
   Execute(): void {
     //Determine how many builders (Workers)
-    let creeps = this.province.RequestCreeps(WORKER, this.ConstructionSites.length, this.Id, this.ConstructionSites.length);
+    let closestToDone = max(this.ConstructionSites, (cs) => cs.progress/cs.progressTotal);
+    let carryParts = Math.ceil((closestToDone.progressTotal - closestToDone.progress) / (CARRY_CAPACITY));
+    let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {stealCreeps: true, deRegisterExcess: true});
 
     //Make them do their job
     for (const creep of creeps) {

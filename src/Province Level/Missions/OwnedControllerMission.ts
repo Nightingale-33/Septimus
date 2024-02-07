@@ -47,10 +47,10 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
   Planner: Planner;
   energyAcquisition : Behaviour;
 
-  Interrupt(creep: AbstractCreep): Action | null {
+  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
     {
-      return this.energyAcquisition.Interrupt(creep);
+      return this.energyAcquisition.Interrupt(creep,afterFirst,nextAction);
     }
     return null;
   }
@@ -76,12 +76,11 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
     }
 
     let levelAmount = controller.level === 8 ? 1 : controller.level;
-    let creeps = this.province.RequestCreeps(WORKER, levelAmount, this.memory.Id, this.priority);
+    let creeps = this.province.RequestCreeps(WORKER, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
 
-    let requestAmount = Math.max(levelAmount, Math.ceil(this.province.Logistics.SurplusEnergy / 1000));
     let requestPriority = controller.ticksToDowngrade < 2500 ? 500 : this.priority;
 
-    creeps = this.province.RequestCreeps(WORKER, requestAmount, this.memory.Id, requestPriority, { deRegisterExcess: false });
+    creeps = this.province.RequestCreeps(WORKER, Infinity, this.memory.Id, requestPriority, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
 
     for (const creep of creeps) {
       this.Planner.Plan(creep);

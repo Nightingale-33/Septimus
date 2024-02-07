@@ -4,6 +4,7 @@ import { GetPositionFromDirection } from "../../../utils/MovementUtils";
 import { log } from "../../../utils/Logging/Logger";
 import { moveTo } from "screeps-cartographer"
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { CountParts } from "../../../utils/CreepUtils";
 
 export const MOVE_ID: string = "M";
 
@@ -46,7 +47,7 @@ export class MoveAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return creep.body.filter((b) => b.type === MOVE && b.hits > 0).length > 0 && creep.pos.getRangeTo(this.Target) > this.Range;
+    return CountParts(creep)[MOVE] > 0 && creep.pos.getRangeTo(this.Target) > this.Range;
   }
 
   run(creep: Creep): boolean {

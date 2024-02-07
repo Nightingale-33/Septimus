@@ -2,6 +2,7 @@ import { Action } from "../Action";
 import { all } from "lodash";
 import { ActionfromJSON } from "../ActionGenerator";
 import { CHATTY } from "../../Constants";
+import { log } from "../../utils/Logging/Logger";
 
 declare global {
   interface CreepMemory {
@@ -33,6 +34,7 @@ Creep.prototype.executePlan = function() {
   while (!this.memory.plan.isEmpty()) {
     let step = this.memory.plan.Steps[0];
     if (!step.isValid(this)) {
+      log(1,`Plan Step: ${JSON.stringify(step)} is no longer valid`);
       let completedStep = this.memory.plan.Steps.shift();
       if (completedStep) {
         completedStep.cleanup(this);

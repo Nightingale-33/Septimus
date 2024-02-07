@@ -3,6 +3,7 @@ import { RepairReservation } from "../../Reservations/RepairReservations";
 import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { CountParts } from "../../../utils/CreepUtils";
 
 export const REPAIR_ID: string = "R";
 
@@ -23,7 +24,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     let reservation : RepairReservation | undefined = undefined;
     if(creep)
     {
-      let reservationAmount = Math.min(0,Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
+      let reservationAmount = Math.max(0,Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY) * REPAIR_POWER, structure.hitsMax - structure.hits));
       reservation = new RepairReservation(creep,structure,reservationAmount);
     }
     super(reservation);
@@ -60,16 +61,16 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     let target = this.Target;
     if(this.pos)
     {
-      let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep,{pos:this.pos,range:3},{priority:15,avoidCreeps:avoidCreeps});
+      let range = creep.pos.getRangeTo(this.pos);
+      moveTo(creep,{pos:this.pos,range:3},{priority:15/range,avoidCreeps:false}, {avoidCreeps:true, priority: 250});
     }
     let result = target ? creep.repair(target) : ERR_INVALID_TARGET;
     if (target && result == OK) {
       let thisReservation = Memory.RepairResv[target.id]?.find((r) => r.reservationId == this.ReservationId);
       if(thisReservation)
       {
-        let creepWorkParts = creep.body.map(bdp => bdp.type).filter(t => t == WORK).length;
-        thisReservation.amount = Math.min(0,thisReservation.amount - creepWorkParts * REPAIR_POWER);
+        let creepWorkParts = CountParts(creep)[WORK];
+        thisReservation.amount = Math.max(0,thisReservation.amount - creepWorkParts * REPAIR_POWER);
       }
     }
     return result == OK;
@@ -85,13 +86,13 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     let fullExpenditure = Math.ceil(remainingEnergy / (creepWorkParts));
     let progress = (this.Target.hitsMax - this.Target.hits) / (creepWorkParts * REPAIR_POWER);
     let expected = Math.min(progress,fullExpenditure);
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,3) - 3;
+    let travel = Math.max(0,Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,3) - 3);
     return travel + expected;
   }
 
   apply(ac: AbstractCreep) {
     ac.pos = this.pos;
-    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) - Math.abs(this.Reservation.amount / REPAIR_POWER) : 0;
+    let finalEnergy = this.Reservation ? ac.store.getUsedCapacity(RESOURCE_ENERGY) - Math.ceil(this.Reservation.amount / REPAIR_POWER) : 0;
     ac.store.setUsed(RESOURCE_ENERGY,finalEnergy);
   }
 }

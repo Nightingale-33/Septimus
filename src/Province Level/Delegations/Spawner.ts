@@ -40,9 +40,9 @@ export class Spawner extends Delegation {
       throw new Error("Spawner was executed with no requests");
     }
 
-    log(2,`Spawn Queue: ${JSON.stringify(this.SpawnRequests)}`);
-
     remove(this.SpawnRequests, (r) => r.inProgress && Game.creeps[r.inProgress]);
+
+    log(2,`Spawn Queue: ${JSON.stringify(this.SpawnRequests)}`);
 
     let availableSpawns = this.province.spawns.filter((s) => !s.spawning);
 
@@ -51,6 +51,7 @@ export class Spawner extends Delegation {
       let available = this.SpawnRequests.filter((r) => !r.inProgress);
       if(available.length == 0)
       {
+        log(2,"No available spawns");
         break;
       }
       spawnedAnything = false;
@@ -74,6 +75,9 @@ export class Spawner extends Delegation {
         {
           remove(availableSpawns,(s) => s.id === spawn.id);
           topPrio.inProgress = spawnedName;
+        } else
+        {
+          log(2,`Did not spawn a ${topPrio.role} for ${topPrio.id}`);
         }
 
         spawnedAnything ||= spawnedName !== null;

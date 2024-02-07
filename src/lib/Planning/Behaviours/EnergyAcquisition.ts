@@ -15,9 +15,9 @@ export class EnergyAcquisitionBehaviour implements Behaviour {
     this.province = province;
   }
 
-  Interrupt(creep: AbstractCreep): Action | null {
+  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
-    if(creepFree > 0)
+    if(creepFree > 0 && afterFirst && !(afterFirst.pos.isNearTo(creep.pos)) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
     {
       let nearbyOpportunity = this.province.Logistics.sources?.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree) ?? [];
       if(nearbyOpportunity.length > 0)
