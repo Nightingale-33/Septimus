@@ -39,22 +39,22 @@ export class RepairingManager extends Delegation implements Behaviour {
       return this.EnergyAcquirer.PlanNext(creep);
     } else {
       //Repair
-      let bestSite = max(this.repairables.filter((cs) => RepairReservation.GetPostReservationHits(cs) < (cs instanceof StructureRampart ? this.rampartHpThreshold(cs) : cs.hitsMax)), (cs) => RepairReservation.GetPostReservationHits(cs) / cs.hitsMax);
-      if(bestSite && bestSite.pos)
-      {
-        log(1,`Planning to Repair: ${bestSite.id} at: ${bestSite.pos?.toJSON()}`);
-        return new RepairAction(bestSite, creep);
+      let repairableNow = this.repairables.filter((cs) => RepairReservation.GetPostReservationHits(cs) < (cs instanceof StructureRampart ? this.rampartHpThreshold(cs) : cs.hitsMax));
+      if (repairableNow.length === 0) {
+        return null;
       }
+      let bestSite = max(repairableNow, (cs) => RepairReservation.GetPostReservationHits(cs) / cs.hitsMax);
+      log(1, `Planning to Repair: ${bestSite.id} at: ${bestSite.pos?.toJSON()}`);
+      return new RepairAction(bestSite, creep);
+
     }
-    return new IdleAction();
   }
 
   get Id(): string {
     return this.province.name + "_" + this.name;
   }
 
-  rampartHpThreshold(s: StructureRampart) : number
-  {
+  rampartHpThreshold(s: StructureRampart): number {
     let controllerLevel = this.province.Capital.controller.level;
     return (10_000 * (controllerLevel));
   }
@@ -72,9 +72,8 @@ export class RepairingManager extends Delegation implements Behaviour {
     //Determine how many repairers (Workers)
     let creeps = this.province.RequestParts([WORKER], WORK, this.repairables.length, this.Id, this.repairables.length * 2, { stealCreeps: true });
 
-    for(const repairable of this.repairables)
-    {
-      repairable.room.visual.circle(repairable.pos,{fill:"#550055", radius:0.1});
+    for (const repairable of this.repairables) {
+      repairable.room.visual.circle(repairable.pos, { fill: "#550055", radius: 0.1 });
     }
 
     //Make them do their job

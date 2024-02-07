@@ -27,10 +27,9 @@ export class BuildingManager extends Delegation implements Behaviour {
   Planner: Planner;
   EnergyAcquirer: Behaviour;
 
-  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
-    if(creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-    {
-      return this.EnergyAcquirer.Interrupt(creep,afterFirst,nextAction);
+  Interrupt(creep: AbstractCreep, afterFirst: AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
+    if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+      return this.EnergyAcquirer.Interrupt(creep, afterFirst, nextAction);
     }
     return null;
   }
@@ -42,7 +41,11 @@ export class BuildingManager extends Delegation implements Behaviour {
       return this.EnergyAcquirer.PlanNext(creep);
     } else {
       //Build
-      let bestSite = min(this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal), (cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
+      let buildable = this.ConstructionSites.filter((cs) => BuildReservation.GetPostReservationProgress(cs) < cs.progressTotal);
+      if (buildable.length === 0) {
+        return null;
+      }
+      let bestSite = min(buildable, (cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
       return new BuildAction(bestSite, creep);
     }
   }
@@ -58,9 +61,12 @@ export class BuildingManager extends Delegation implements Behaviour {
 
   Execute(): void {
     //Determine how many builders (Workers)
-    let closestToDone = max(this.ConstructionSites, (cs) => cs.progress/cs.progressTotal);
+    let closestToDone = max(this.ConstructionSites, (cs) => cs.progress / cs.progressTotal);
     let carryParts = Math.ceil((closestToDone.progressTotal - closestToDone.progress) / (CARRY_CAPACITY));
-    let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {stealCreeps: true, deRegisterExcess: true});
+    let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {
+      stealCreeps: true,
+      deRegisterExcess: true
+    });
 
     //Make them do their job
     for (const creep of creeps) {
