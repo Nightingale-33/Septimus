@@ -1,6 +1,6 @@
 import { Action } from "../../Action";
 import { all, any, isNumber, parseInt } from "lodash";
-import { GetPositionFromDirection } from "../../../utils/MovementUtils";
+import { GetPositionFromDirection, MovementRoomCallback } from "../../../utils/MovementUtils";
 import { log } from "../../../utils/Logging/Logger";
 import { moveTo } from "screeps-cartographer"
 import { AbstractCreep } from "../../Planning/AbstractCreep";
@@ -52,7 +52,7 @@ export class MoveAction extends Action {
 
   run(creep: Creep): boolean {
     let avoidCreeps = !this.Shove && creep.pos.getRangeTo(this.Target) < 5;
-    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? Infinity : 1,visualizePathStyle:{}, avoidCreeps: avoidCreeps},{visualizePathStyle:{stroke:"#FF0000"}, avoidCreeps:true});
+    let result = moveTo(creep,{ pos:this.Target, range: this.Range}, {priority: this.Shove ? Infinity : 1,visualizePathStyle:{}, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback},{visualizePathStyle:{stroke:"#FF0000"}, avoidCreeps:true});
     return result == OK || result == ERR_TIRED;
   }
 

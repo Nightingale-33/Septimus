@@ -6,6 +6,7 @@ import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { GetRoomPositionFromJSON } from "../../Prototypes/RoomPosition";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const DROP_ID = "L";
 
@@ -32,7 +33,7 @@ export class DropAction extends Action {
   run(creep: Creep): boolean {
     if (this.pos) {
       let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps });
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
     }
     return (creep.drop(this.resource,this.amount) == OK);
   };

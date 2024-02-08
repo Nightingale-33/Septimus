@@ -5,6 +5,7 @@ import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const PICKUP_ID = "P";
 
@@ -39,7 +40,7 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
     let target = this.Target;
     if (this.pos) {
       let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps });
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
     }
     return (target ? creep.pickup(target) : ERR_INVALID_TARGET) == OK;
   };

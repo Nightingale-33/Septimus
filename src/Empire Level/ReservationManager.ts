@@ -4,6 +4,13 @@ import { RepairReservation } from "../lib/Reservations/RepairReservations";
 import { BuildReservation } from "../lib/Reservations/BuildReservations";
 import { sum } from "lodash";
 
+declare global
+{
+  interface Memory {
+    displayReservations : boolean;
+  }
+}
+
 export class ReservationManager extends Delegation
 {
     name: string;
@@ -16,6 +23,11 @@ export class ReservationManager extends Delegation
         ResourceReservation.Cleanup();
         RepairReservation.Cleanup();
         BuildReservation.Cleanup();
+
+        if(!Memory.displayReservations)
+        {
+          return;
+        }
 
         for(const struct in Memory.RsrcResv)
         {
@@ -41,6 +53,58 @@ export class ReservationManager extends Delegation
             }
           }
         }
+
+        for(const struct in Memory.BuildResv)
+        {
+          let id = struct as Id<ConstructionSite>;
+          let obj= Game.getObjectById(id);
+          if(obj && Memory.BuildResv[id].length > 0)
+          {
+            let input = sum(Memory.BuildResv[id].map((r) => r.amount));
+            let vis = obj.room?.visual;
+            if(vis)
+            {
+              vis.circle(obj.pos,{radius:0.5});
+              vis.text(`${input}`,obj.pos.x,obj.pos.y - 0.25, {color:"#00A977"});
+
+              for(const reservation of Memory.BuildResv[id])
+              {
+                let reserver = reservation.reserver;
+                let rObj = Game.getObjectById(reserver);
+                if(rObj)
+                {
+                  vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:"#00A977"});
+                }
+              }
+            }
+          }
+        }
+
+      for(const struct in Memory.RepairResv)
+      {
+        let id = struct as Id<Structure>;
+        let obj= Game.getObjectById(id);
+        if(obj && Memory.RepairResv[id].length > 0)
+        {
+          let input = sum(Memory.RepairResv[id].map((r) => r.amount));
+          let vis = obj.room?.visual;
+          if(vis)
+          {
+            vis.circle(obj.pos,{radius:0.5});
+            vis.text(`${input}`,obj.pos.x,obj.pos.y - 0.25, {color:"#D54E00"});
+
+            for(const reservation of Memory.RepairResv[id])
+            {
+              let reserver = reservation.reserver;
+              let rObj = Game.getObjectById(reserver);
+              if(rObj)
+              {
+                vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:"#D54E00"});
+              }
+            }
+          }
+        }
+      }
     }
 
 }

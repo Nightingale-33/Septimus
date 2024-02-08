@@ -4,6 +4,7 @@ import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const REPAIR_ID: string = "R";
 
@@ -62,7 +63,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     if(this.pos)
     {
       let range = creep.pos.getRangeTo(this.pos);
-      moveTo(creep,{pos:this.pos,range:3},{priority:15/range,avoidCreeps:false}, {avoidCreeps:true, priority: 250});
+      moveTo(creep,{pos:this.pos,range:3},{priority:15/range,avoidCreeps:false, roomCallback:MovementRoomCallback}, {avoidCreeps:true, priority: 250});
     }
     let result = target ? creep.repair(target) : ERR_INVALID_TARGET;
     if (target && result == OK) {

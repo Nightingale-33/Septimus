@@ -44,7 +44,8 @@ const defaultsMemory : Memory = {
   creepNum: 0,
   logLevel: 1,
   logFlags: [],
-  Empire: defaultsEmpireMemory
+  Empire: defaultsEmpireMemory,
+  displayReservations: true
 }
 
 export class Empire {
@@ -226,10 +227,6 @@ export class Empire {
         delete Memory.flags[flagName];
       }
     }
-
-    BuildReservation.Cleanup();
-    ResourceReservation.Cleanup();
-    RepairReservation.Cleanup();
   }
 }
 

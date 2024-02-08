@@ -1,3 +1,6 @@
+import { flatten, isObject, map } from "lodash";
+import { Mission } from "../lib/Mission/Mission";
+import { Delegation } from "../lib/Delegation";
 
 export interface MoveDefinition {
   dest: RoomPosition,
@@ -40,4 +43,40 @@ export function isEnterable(pos : RoomPosition) {
       item.terrain !== 'wall' :
       !isObstacle[item.structure?.structureType ?? ""]
   );
+}
+
+export interface CostMatrixAdjuster
+{
+  adjustCostMatrix(roomName : string, cm:CostMatrix) : CostMatrix;
+}
+
+export function IsCostMatrixAdjuster<T extends Object>(obj : T) : boolean
+{
+  return isObject(obj) && 'adjustCostMatrix' in obj;
+}
+
+export function MovementRoomCallback(roomName: string): boolean | CostMatrix {
+  return global.cache.UseValue(() => {
+    let cm = new PathFinder.CostMatrix();
+    if(global.empire)
+    {
+      let empireMissions = Object.values(global.empire.ActiveMissions);
+      let empireDelegations = global.empire.Delegations;
+      let relevantPrefecture = flatten(map(global.empire.Provinces ?? [],(p) => p.Prefectures)).find((p) => p.RoomName === roomName);
+      if(relevantPrefecture)
+      {
+        let missions = empireMissions.concat(Object.values(relevantPrefecture.province.ActiveMissions)).filter((m) : m is (Mission & CostMatrixAdjuster) => m.pos.roomName === roomName && IsCostMatrixAdjuster(m));
+        let delegations = relevantPrefecture.province.Delegations.concat(relevantPrefecture.Delegations).filter((d) : d is (Delegation & CostMatrixAdjuster) => IsCostMatrixAdjuster(d));
+        for(const mission of missions)
+        {
+          cm = mission.adjustCostMatrix(roomName,cm);
+        }
+        for(const delegation of delegations)
+        {
+          cm = delegation.adjustCostMatrix(roomName,cm);
+        }
+      }
+    }
+    return cm;
+  }, 10,`${roomName}_CostMatrix`);
 }

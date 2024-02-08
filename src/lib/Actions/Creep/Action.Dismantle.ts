@@ -1,6 +1,7 @@
 import { Action } from "../../Action";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const DISMANTLE_ID: string = "D";
 
@@ -46,7 +47,7 @@ export class DismantleAction extends Action {
     let target = this.Target;
     if (this.pos) {
       let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 50, avoidCreeps: avoidCreeps });
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 50, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
     }
     return (target ? creep.dismantle(target) : ERR_INVALID_TARGET) == OK;
   }

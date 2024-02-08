@@ -75,6 +75,11 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
       return;
     }
 
+    if(!this.province.Roads.Requests.find((p) => p.isEqualTo(controller!.pos)))
+    {
+      this.province.Roads.Requests.push(controller.pos);
+    }
+
     let levelAmount = controller.level === 8 ? 1 : controller.level;
     let creeps = this.province.RequestCreeps(WORKER, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
 

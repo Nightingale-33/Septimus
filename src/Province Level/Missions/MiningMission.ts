@@ -101,6 +101,10 @@ export class MiningMission extends ProvinceMission implements Behaviour {
 
   private resolveMiningPos(): RoomPosition {
     if (this.container) {
+      if(!this.province.Roads.Requests.find((p) => p.isEqualTo(this.container!.pos)))
+      {
+        this.province.Roads.Requests.push(this.container.pos);
+      }
       return this.container.pos;
     }
 

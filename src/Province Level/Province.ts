@@ -18,6 +18,7 @@ import * as wasi from "wasi";
 import { options } from "tsconfig-paths/lib/options";
 import { BaseLocationDecider } from "../Prefecture Level/RoomPlanning/BaseLocationDecider";
 import { RepairingManager } from "./Delegations/MaintenanceManager";
+import { RoadBuilder } from "./Delegations/RoadBuilder";
 
 declare global {
   interface ProvinceMemory {
@@ -83,21 +84,11 @@ export class Province {
   }
 
   get Delegations(): Delegation[] {
-    return this.GeneralDelegations.concat([this.MiningMan, this.Logistics, this.Spawning, this.Building, this.Repairing]);
+    return this.GeneralDelegations.concat([this.MiningMan, this.Logistics, this.Spawning, this.Building, this.Repairing, this.Roads]);
   };
 
-  get FocalPoint(): RoomPosition {
-    if(this.memory.FocalPoint)
-    {
-      return this.memory.FocalPoint;
-    }
-    if(this.spawns.length > 0)
-    {
-      return this.spawns[0].pos;
-    }
-
-    log(1,"Really shouldn't get here, as that means no spawns");
-    return new RoomPosition(25,25,this.Capital.RoomName);
+  get FocalPoint(): RoomPosition | undefined {
+    return this.memory.FocalPoint;
   }
 
   Spawning: Spawner;
@@ -105,6 +96,7 @@ export class Province {
   Logistics: EnergyLogisticsManager;
   Building : BuildingManager;
   Repairing : RepairingManager;
+  Roads : RoadBuilder;
   GeneralDelegations: Delegation[] = [];
 
   Initialised: boolean = false;
@@ -158,6 +150,7 @@ export class Province {
     this.Logistics = new EnergyLogisticsManager(this);
     this.Building = new BuildingManager(this);
     this.Repairing = new RepairingManager(this);
+    this.Roads = new RoadBuilder(this);
 
     this.Capital.Delegations.push(new BaseLocationDecider(this, this.Capital));
 
@@ -196,12 +189,12 @@ export class Province {
       }
     }
 
-    for (const creep of this.creeps) {
-      if (creep.memory.plan.isEmpty() && creep.memory.assignmentId !== undefined) {
-        log(1, `Creep: ${creep.name} was idle and is thus having its assignment cleared`);
-        this.UnassignCreep(creep);
-      }
-    }
+    // for (const creep of this.creeps) {
+    //   if (creep.memory.plan.isEmpty() && creep.memory.assignmentId !== undefined) {
+    //     log(1, `Creep: ${creep.name} was idle and is thus having its assignment cleared`);
+    //     this.UnassignCreep(creep);
+    //   }
+    // }
   }
 
   UnassignCreep(creep: Creep) {

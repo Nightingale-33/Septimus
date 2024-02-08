@@ -3,6 +3,7 @@ import { all } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { CountParts } from "../../../utils/CreepUtils";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const HARVEST_ID: string = "H";
 
@@ -49,7 +50,7 @@ export class HarvestAction extends Action {
     let target = this.Target;
     if (this.pos) {
       let prio = creep.pos.getRangeTo(this.pos) === 1 ? 500 : 250;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: prio, avoidCreeps: false }, {avoidCreeps:true});
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: prio, avoidCreeps: false, roomCallback:MovementRoomCallback }, {avoidCreeps:true});
     }
     if (!target) {
       return false;

@@ -4,6 +4,7 @@ import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const BUILD_ID: string = "B";
 
@@ -64,7 +65,7 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     let target = this.Target;
 
     let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-    moveTo(creep, { pos: this.pos, range: 3 }, { priority: 15, avoidCreeps: avoidCreeps });
+    moveTo(creep, { pos: this.pos, range: 3 }, { priority: 15, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
 
     let result = target ? creep.build(target) : ERR_INVALID_TARGET;
     if (target && result == OK) {

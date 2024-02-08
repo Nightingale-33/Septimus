@@ -44,9 +44,12 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     if(this.province.storage)
     {
       return this.province.storage.pos;
-    } else
+    } else if(this.province.FocalPoint)
     {
       return this.province.FocalPoint;
+    } else
+    {
+      throw new Error("Unable to resolve Storage Position");
     }
   }
 
@@ -168,9 +171,10 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     });
     let sinkable = sum(this.sinks, (s) => s.store.getFreeCapacity(RESOURCE_ENERGY));
     //Cap at sinkable. Nothing to haul if nowhere to haul to
+    log(8,`Haulable: ${haulable}, Sinkable: ${sinkable}`);
     haulable = Math.min(haulable, sinkable);
 
-    let haulableCarryParts = haulable / (CARRY_CAPACITY * 5);
+    let haulableCarryParts = haulable / (CARRY_CAPACITY * 2);
 
     carryParts = Math.max(haulableCarryParts, carryParts);
 

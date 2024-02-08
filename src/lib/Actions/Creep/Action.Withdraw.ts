@@ -2,6 +2,7 @@ import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const WITHDRAW_ID = "W";
 
@@ -42,7 +43,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     {
       let range = creep.pos.getRangeTo(this.pos);
       let avoidCreeps = false; // < 5;
-      moveTo(creep,{pos:this.pos,range:1},{priority:1000/range,avoidCreeps:avoidCreeps, visualizePathStyle:{stroke:"#00009F"}},{avoidCreeps:true,priority:1000*range});
+      moveTo(creep,{pos:this.pos,range:1},{priority:1000/range,avoidCreeps:avoidCreeps, visualizePathStyle:{stroke:"#00009F"}, roomCallback:MovementRoomCallback},{avoidCreeps:true,priority:1000*range});
     }
     return (target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };

@@ -2,6 +2,7 @@ import { all } from "lodash";
 import { Action } from "../../Action";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const RECYCLE_ID: string = "Recycle";
 
@@ -46,7 +47,7 @@ export class RecycleAction extends Action {
     if (this.Target) {
       if (this.pos) {
         let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-        moveTo(creep, { pos: this.pos, range: 1 }, { priority: 2, avoidCreeps: avoidCreeps });
+        moveTo(creep, { pos: this.pos, range: 1 }, { priority: 2, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
       }
       return this.Target.recycleCreep(creep) == OK;
     } else {

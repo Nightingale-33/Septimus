@@ -3,6 +3,7 @@ import { countBy } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 
 export const UPGRADE_ID: string = "U";
 
@@ -48,7 +49,7 @@ export class UpgradeAction extends Action {
     if(this.pos)
     {
       let range = creep.pos.getRangeTo(this.pos);
-      moveTo(creep,{pos:this.pos,range:3},{priority:range,avoidCreeps:false});
+      moveTo(creep,{pos:this.pos,range:3},{priority:range,avoidCreeps:false, roomCallback:MovementRoomCallback});
     }
     return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
   }
