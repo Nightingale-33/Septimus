@@ -44,20 +44,27 @@ export class BaseBuild extends ProvinceMission implements CostMatrixAdjuster {
 
   priority: number;
 
+  lastControllerLevel:number = 0;
   run(): void {
-    switch (this.designName) {
-      case "Diamond":
-        return this.buildDiamond();
-    }
-  }
+    if(this.buildQueue.length === 0)
+    {
+      switch (this.designName) {
+        case "Diamond":
+          this.buildDiamond();
+          break;
+        default:
+          throw new Error(`Unexpected Base Type: ${this.designName}`);
+      }
 
-  buildDiamond(): void {
-    if (this.buildQueue.length === 0) {
-      //Reset the queue
-      this.buildQueue = GetBuildsFromPlan(designDiamond, this.flag.pos);
-      log(1, `Build Queue: ${JSON.stringify(this.buildQueue)}`);
       return;
     }
+
+    if(this.lastControllerLevel < this.province.Capital.controller.level)
+    {
+      this.buildIndex = 0;
+    }
+
+    this.lastControllerLevel = this.province.Capital.controller.level;
 
     if (this.province.Building.ConstructionSites.filter((cs) => cs.structureType !== STRUCTURE_ROAD).length > Math.pow(this.province.Capital.controller.level, 2)) {
       return;
@@ -67,10 +74,12 @@ export class BaseBuild extends ProvinceMission implements CostMatrixAdjuster {
     this.buildIndex = (this.buildIndex + 1) % this.buildQueue.length;
 
     let result = next[1].createConstructionSite(next[0]);
-    if (result === OK) {
-      this.buildIndex = 0;
-    }
+    log(TRACE_FLAG,`Create Construction Site Result: ${result}`);
+  }
 
+  buildDiamond(): void {
+    this.buildQueue = GetBuildsFromPlan(designDiamond, this.flag.pos);
+    log(1, `Build Queue: ${JSON.stringify(this.buildQueue)}`);
   }
 
 }

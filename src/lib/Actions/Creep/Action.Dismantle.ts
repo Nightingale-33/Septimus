@@ -47,7 +47,7 @@ export class DismantleAction extends Action {
     let target = this.Target;
     if (this.pos) {
       let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 50, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 50, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 });
     }
     return (target ? creep.dismantle(target) : ERR_INVALID_TARGET) == OK;
   }

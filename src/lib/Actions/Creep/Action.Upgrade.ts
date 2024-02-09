@@ -49,7 +49,7 @@ export class UpgradeAction extends Action {
     if(this.pos)
     {
       let range = creep.pos.getRangeTo(this.pos);
-      moveTo(creep,{pos:this.pos,range:3},{priority:range,avoidCreeps:false, roomCallback:MovementRoomCallback});
+      moveTo(creep,{pos:this.pos,range:3},{priority:range,avoidCreeps:false, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2});
     }
     return (target ? creep.upgradeController(target) : ERR_INVALID_TARGET) == OK;
   }

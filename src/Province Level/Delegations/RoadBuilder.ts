@@ -12,6 +12,11 @@ export class RoadBuilder extends Delegation implements CostMatrixAdjuster {
       }
     }
 
+    for(const road of this.province.structures.filter((s) => s.structureType === STRUCTURE_ROAD && s.pos.roomName === roomName))
+    {
+      cm.set(road.pos.x,road.pos.y,1);
+    }
+
     if (this.planning) {
       let structures = this.province.structures.filter((s) => (OBSTACLE_OBJECT_TYPES as string[]).includes(s.structureType) || s.structureType === STRUCTURE_CONTAINER);
       for (const s of structures) {

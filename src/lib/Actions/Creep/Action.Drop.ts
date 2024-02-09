@@ -33,7 +33,7 @@ export class DropAction extends Action {
   run(creep: Creep): boolean {
     if (this.pos) {
       let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 10, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 });
     }
     return (creep.drop(this.resource,this.amount) == OK);
   };

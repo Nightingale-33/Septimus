@@ -50,7 +50,7 @@ export class HarvestAction extends Action {
     let target = this.Target;
     if (this.pos) {
       let prio = creep.pos.getRangeTo(this.pos) === 1 ? 500 : 250;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: prio, avoidCreeps: false, roomCallback:MovementRoomCallback }, {avoidCreeps:true});
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority: prio, avoidCreeps: false, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 }, {avoidCreeps:true});
     }
     if (!target) {
       return false;

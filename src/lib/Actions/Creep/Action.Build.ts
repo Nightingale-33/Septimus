@@ -65,7 +65,7 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     let target = this.Target;
 
     let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-    moveTo(creep, { pos: this.pos, range: 3 }, { priority: 15, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
+    moveTo(creep, { pos: this.pos, range: 3 }, { priority: 15, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 });
 
     let result = target ? creep.build(target) : ERR_INVALID_TARGET;
     if (target && result == OK) {

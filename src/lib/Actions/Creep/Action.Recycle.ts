@@ -47,7 +47,7 @@ export class RecycleAction extends Action {
     if (this.Target) {
       if (this.pos) {
         let avoidCreeps = creep.pos.getRangeTo(this.pos) < 5;
-        moveTo(creep, { pos: this.pos, range: 1 }, { priority: 2, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback });
+        moveTo(creep, { pos: this.pos, range: 1 }, { priority: 2, avoidCreeps: avoidCreeps, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 });
       }
       return this.Target.recycleCreep(creep) == OK;
     } else {

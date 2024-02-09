@@ -3,6 +3,7 @@ import { Prefecture } from "./Prefecture";
 import { Province } from "../Province Level/Province";
 import { min } from "lodash";
 import { log } from "../utils/Logging/Logger";
+import { RepairReservation } from "../lib/Reservations/RepairReservations";
 
 export class TowerDelegation extends Delegation
 {
@@ -41,12 +42,13 @@ export class TowerDelegation extends Delegation
         let towerUsed = tower.store.getUsedCapacity(RESOURCE_ENERGY);
         let towerFree = tower.store.getFreeCapacity(RESOURCE_ENERGY);
         log(6,`Tower: ${tower.id} has: ${towerUsed}/${tower.store.getCapacity(RESOURCE_ENERGY)} energy`);
-        if(this.province.Repairing.repairables.length === 0 || (towerUsed ?? 0) < (towerFree ?? 0))
+        let validRepairs = this.province.Repairing.repairables.filter((r) => (r.structureType === STRUCTURE_ROAD || r.pos.getRangeTo(tower.pos) <= 10) && RepairReservation.GetPostReservationHits(r) < r.hitsMax);
+        if(validRepairs.length === 0 || (towerUsed ?? 0) < (towerFree ?? 0))
         {
-          return;
+          continue;
         }
-        let nearbyRepair = min(this.province.Repairing.repairables,(r) => r.pos.getRangeTo(tower.pos));
-        if(nearbyRepair && nearbyRepair.pos && nearbyRepair.pos.inRangeTo(tower.pos,10))
+        let nearbyRepair = min(validRepairs,(r) => r.pos.getRangeTo(tower.pos));
+        if(nearbyRepair)
         {
           tower.repair(nearbyRepair);
         }
