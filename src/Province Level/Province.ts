@@ -18,6 +18,7 @@ import { BaseLocationDecider } from "../Prefecture Level/RoomPlanning/BaseLocati
 import { RepairingManager } from "./Delegations/MaintenanceManager";
 import { RoadBuilder } from "./Delegations/RoadBuilder";
 import { PrefectureAcquirer } from "./Delegations/PrefectureAcquirer";
+import { ExtensionRefiller } from "./Delegations/ExtensionRefiller";
 
 declare global {
   interface ProvinceMemory {
@@ -39,7 +40,8 @@ export interface CreepRequestOptions {
   spawnPredicate?: (province: Province) => boolean,
   maxCreeps?: number,
   stealCreeps?: boolean,
-  stopIfIdle? : boolean
+  stopIfIdle? : boolean,
+  clearPlan? : boolean
 }
 
 const defaultCreepRequestOptions: CreepRequestOptions = {
@@ -49,7 +51,8 @@ const defaultCreepRequestOptions: CreepRequestOptions = {
   spawnPredicate: (province) => province.Capital.room.energyAvailable >= 300 && (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75,
   maxCreeps: Infinity,
   stealCreeps: false,
-  stopIfIdle: true
+  stopIfIdle: true,
+  clearPlan: true
 };
 
 const defaultsProvinceMemory: ProvinceMemory = {
@@ -145,14 +148,25 @@ export class Province {
     this.Roads = new RoadBuilder(this);
 
     this.GeneralDelegations.push(new PrefectureAcquirer(this));
+    this.GeneralDelegations.push(new ExtensionRefiller(this));
 
-    this.Capital.Delegations.push(new BaseLocationDecider(this, this.Capital));
+    this.Capital.GeneralDelegations.push(new BaseLocationDecider(this, this.Capital));
 
     this.Initialised = true;
     log(1, `Province at: ${this.Capital.RoomName} Initialised`);
   }
 
   Run() {
+    for (const prefecture of this.Prefectures) {
+      Profile(prefecture.RoomName, () => {
+        if(!prefecture.Initialised)
+        {
+          prefecture.Initialise();
+        }
+        prefecture.Run();
+      });
+    }
+
     for (const delegation of this.Delegations) {
       Profile(delegation.name, () => {
         if (delegation.ShouldExecute()) {
@@ -165,12 +179,6 @@ export class Province {
       let mission = this.ActiveMissions[mFlag];
       Profile(mFlag, () => {
         mission.run();
-      });
-    }
-
-    for (const prefecture of this.Prefectures) {
-      Profile(prefecture.RoomName, () => {
-        prefecture.Run();
       });
     }
   }
@@ -200,6 +208,11 @@ export class Province {
   RequestCreeps(role: Role, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
     let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
 
+    if(requestId.length === 0)
+    {
+      throw new Error(`Empty Request Id for ${role}`);
+    }
+
     //Gather pre-assigned
     let assignedCreeps: Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId);
     if (options.deRegisterExcess && assignedCreeps.length > amount) {
@@ -221,6 +234,10 @@ export class Province {
         assignedCreeps.push(unassignedCreep);
         unassignedCreep.memory.assignmentId = requestId;
         unassignedCreep.memory.assignmentPriority = requestPriority;
+        if(options.clearPlan)
+        {
+          unassignedCreep.memory.plan.clear(unassignedCreep);
+        }
         log(1, `Claiming ${unassignedCreep.memory.role}: ${unassignedCreep.name} in ${this.name} for: ${requestId}`);
       } else {
         let lessBusyCreep = this.creeps.find((c) =>
@@ -229,6 +246,10 @@ export class Province {
           assignedCreeps.push(lessBusyCreep);
           lessBusyCreep.memory.assignmentId = requestId;
           lessBusyCreep.memory.assignmentPriority = requestPriority;
+          if(options.clearPlan)
+          {
+            lessBusyCreep.memory.plan.clear(lessBusyCreep);
+          }
           log(1, `Claiming Pre-Assigned ${lessBusyCreep.memory.role}: ${lessBusyCreep.name} in ${this.name} for: ${requestId}`);
         } else {
           log(TRACE_FLAG, `Unable to find free ${role} in ${this.name}`);
@@ -268,13 +289,17 @@ export class Province {
   RequestParts(usableRoles: Role[], part: BodyPartConstant, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
     let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
 
+    if(requestId.length === 0)
+    {
+      throw new Error(`Empty Request Id for ${JSON.stringify(usableRoles)}`);
+    }
     if (usableRoles.length === 0) {
       throw new Error("0 Roles designated when requesting by parts");
     }
     let countPart = (creeps: Creep[]) => sum(creeps, (c) => CountParts(c)[part]);
     //Gather pre-assigned
     let assignedCreeps: Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId)
-      .sort((a, b) => CountParts(b)[WORK] - CountParts(a)[WORK]);
+      .sort((a, b) => CountParts(b)[part] - CountParts(a)[part]);
     if (options.deRegisterExcess && (countPart(assignedCreeps) > amount || assignedCreeps.length > options.maxCreeps!)) {
       let keptCreepNumber = 1;
       let keptCreeps = assignedCreeps.slice(0, keptCreepNumber);

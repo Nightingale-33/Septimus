@@ -5,6 +5,7 @@ import { Province } from "../Province Level/Province";
 import { OwnedControllerMission } from "../Province Level/Missions/OwnedControllerMission";
 import { DistanceTransform, DTDisplayRooms } from "./RoomPlanning/DistanceTransform";
 import { TowerDelegation } from "./TowerDelegation";
+import { PrefectureDefense } from "./PrefectureDefense";
 
 declare global {
   interface RoomMemory {
@@ -21,7 +22,10 @@ export class Prefecture {
 
   province: Province;
 
-  Delegations: Delegation[] = [];
+  Defense : PrefectureDefense;
+
+  get Delegations() : Delegation[] { return this.GeneralDelegations.concat([this.Defense]);}
+  GeneralDelegations: Delegation[] = [];
 
   distanceTransformer: DistanceTransform;
 
@@ -72,7 +76,8 @@ export class Prefecture {
   Initialise() {
     this.Initialised = true;
 
-    this.Delegations.push(new TowerDelegation(this.province, this));
+    this.Defense = new PrefectureDefense(this);
+    this.GeneralDelegations.push(new TowerDelegation(this));
 
     log(2, `Prefecture at: ${this.RoomName} initialised`);
   }

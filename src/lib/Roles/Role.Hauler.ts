@@ -8,7 +8,7 @@ export function SpawnHauler(spawn: StructureSpawn, province: Province) : string 
   const baseBody = [CARRY, MOVE];
   const bodyAddon = [CARRY];
 
-  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon, 6,true);
+  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon);
   if (largestBody.length == 0) {
     return null;
   }

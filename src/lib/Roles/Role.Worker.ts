@@ -8,7 +8,7 @@ export function SpawnWorker(spawn: StructureSpawn, province: Province) : string 
   const baseBody = [WORK, CARRY, MOVE];
   const bodyAddon = [WORK,CARRY];
 
-  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon, 6,true);
+  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon);
   if (largestBody.length == 0) {
     return null;
   }

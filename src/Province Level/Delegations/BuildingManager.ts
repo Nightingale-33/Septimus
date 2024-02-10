@@ -15,7 +15,7 @@ export class BuildingManager extends Delegation implements Behaviour {
   province: Province;
 
   get ConstructionSites(): ConstructionSite[] {
-    return global.cache.UseValue(() => sortByAll(flatten(this.province.Prefectures.map((p) => p.constructionSites)),(cs) => BuildableStructurePriorityOrder.indexOf(cs.structureType),(cs) => ((cs.progressTotal - cs.progress)/cs.progressTotal)), 0, this.Id + "_Sites");
+    return global.cache.UseValue(() => sortByAll(flatten(this.province.Prefectures.map((p) => p.constructionSites)),(cs) => BuildableStructurePriorityOrder.indexOf(cs.structureType),(cs) => ((cs.progressTotal - cs.progress)/cs.progressTotal), (cs) => this.province.FocalPoint ? cs.pos.getMultiRoomRangeTo(this.province.FocalPoint) : 0), 0, this.Id + "_Sites");
   }
 
   constructor(province: Province) {

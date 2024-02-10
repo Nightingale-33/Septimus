@@ -12,7 +12,7 @@ import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 import { CountParts } from "../../utils/CreepUtils";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
-import { isEnterable } from "../../utils/MovementUtils";
+import { CostMatrixAdjuster, isEnterable } from "../../utils/MovementUtils";
 import { RepairReservation } from "../../lib/Reservations/RepairReservations";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
@@ -25,7 +25,7 @@ const defaultMiningSiteMemory: MiningSiteMemory = {
   Id: ""
 };
 
-export class MiningMission extends ProvinceMission implements Behaviour {
+export class MiningMission extends ProvinceMission implements Behaviour, CostMatrixAdjuster {
   memory: MiningSiteMemory;
 
   get visibility(): boolean {
@@ -70,6 +70,17 @@ export class MiningMission extends ProvinceMission implements Behaviour {
     this.resolveContainer();
     this.miningPos = this.resolveMiningPos();
     this.maxMiners = this.resolveMaxMiners();
+
+    if (this.pos.roomName !== this.province.Capital.RoomName) {
+      this.priority /= 1000;
+    }
+  }
+
+  adjustCostMatrix(roomName: string, cm: CostMatrix): CostMatrix {
+    if (this.miningPos.roomName === roomName) {
+      cm.set(this.miningPos.x, this.miningPos.y, 50);
+    }
+    return cm;
   }
 
   private resolveMaxMiners(): number {
@@ -100,8 +111,7 @@ export class MiningMission extends ProvinceMission implements Behaviour {
 
   private resolveMiningPos(): RoomPosition {
     if (this.container) {
-      if(!this.province.Roads.Requests.find((p) => p.isEqualTo(this.container!.pos)))
-      {
+      if (!this.province.Roads.Requests.find((p) => p.isEqualTo(this.container!.pos))) {
         this.province.Roads.Requests.push(this.container.pos);
       }
       return this.container.pos;
@@ -144,7 +154,7 @@ export class MiningMission extends ProvinceMission implements Behaviour {
     }
 
     let spawnPred = (province: Province) => {
-      return this.lastCreepsHad === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.5;
+      return this.lastCreepsHad === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75;
     };
     let creeps = this.province.RequestParts([HARVESTER], WORK, SOURCE_HARVEST_PARTS + 1, this.memory.Id, this.lastCreepsHad === 0 ? this.priority : this.priority / Math.pow(100, this.lastCreepsHad), {
       maxCreeps: practicalMax,
@@ -164,18 +174,18 @@ export class MiningMission extends ProvinceMission implements Behaviour {
     if (!claimingCreep) {
       this.miningPosClaimed = undefined;
     }
-    let biggestCreep = max(creeps,(c) => CountParts(c)[WORK]);
+    let biggestCreep = max(creeps, (c) => CountParts(c)[WORK]);
     if (!this.miningPosClaimed || !claimingCreep) {
       this.miningPosClaimed = biggestCreep.id;
       claimingCreep = biggestCreep;
-      log(1,`Mining Pos at: ${this.Id} claimed by : ${this.miningPosClaimed} by death`);
+      log(1, `Mining Pos at: ${this.Id} claimed by : ${this.miningPosClaimed} by death`);
     } else if (CountParts(biggestCreep)[WORK] > CountParts(claimingCreep)[WORK]) {
       this.miningPosClaimed = biggestCreep.id;
       claimingCreep = biggestCreep;
-      log(1,`Mining Pos at: ${this.Id} claimed by : ${this.miningPosClaimed} by conquest`);
+      log(1, `Mining Pos at: ${this.Id} claimed by : ${this.miningPosClaimed} by conquest`);
     }
     //else they are equally big so no fighting
-    log(1,`Mining Site: ${this.sourceId} claimed by ${claimingCreep.name}`);
+    log(1, `Mining Site: ${this.sourceId} claimed by ${claimingCreep.name}`);
 
     if (this.visibility && !this.container) {
       this.resolveContainer();
@@ -191,11 +201,10 @@ export class MiningMission extends ProvinceMission implements Behaviour {
 
   miningPosClaimed: Id<Creep> | undefined;
 
-  Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
+  Interrupt(creep: AbstractCreep, afterFirst: AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     let onMiningPos = creep.pos.isEqualTo(this.miningPos);
-    if(!onMiningPos && this.miningPosClaimed === creep.id && !(afterFirst?.pos.isEqualTo(this.miningPos)))
-    {
-      return new MoveAction(this.miningPos,0,true);
+    if (!onMiningPos && this.miningPosClaimed === creep.id && !(afterFirst?.pos.isEqualTo(this.miningPos))) {
+      return new MoveAction(this.miningPos, 0, true);
     }
     let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
     if (creepFree == 0 && this.container) {
@@ -218,7 +227,7 @@ export class MiningMission extends ProvinceMission implements Behaviour {
 
 
     if (this.source && this.source.energy === 0) {
-      log(1,`Deciding to idle for harvester: ${creep.name}, source: ${this.source.id} ${this.source.energy}`);
+      log(1, `Deciding to idle for harvester: ${creep.name}, source: ${this.source.id} ${this.source.energy}`);
       return new IdleAction();
     }
 

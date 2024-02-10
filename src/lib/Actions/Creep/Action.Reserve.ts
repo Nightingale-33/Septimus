@@ -40,7 +40,7 @@ export class ReserveAction extends Action {
   }
 
   isValid(creep: Creep): boolean {
-    return CountParts(creep)[CLAIM] > 0;
+    return CountParts(creep)[CLAIM] > 0 && !(this.Target?.my);
   }
 
   run(creep: Creep): boolean {

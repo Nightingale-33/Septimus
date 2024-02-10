@@ -8,6 +8,7 @@ import { log } from "../../utils/Logging/Logger";
 import { HAULER, SpawnHauler } from "../../lib/Roles/Role.Hauler";
 import { SCOUT, SpawnScout } from "../../lib/Roles/Role.Scout";
 import { CLAIMER, SpawnClaimer } from "../../lib/Roles/Role.Claimer";
+import { LEGIONNAIRE, SpawnLegionnaire } from "../../lib/Roles/Combat/Role.Legionnaire";
 
 export class Spawner extends Delegation {
   name: string = "Spawner_";
@@ -75,6 +76,9 @@ export class Spawner extends Delegation {
             break;
           case CLAIMER:
             spawnedName = SpawnClaimer(spawn,this.province);
+            break;
+          case LEGIONNAIRE:
+            spawnedName = SpawnLegionnaire(spawn,this.province);
             break;
           default: throw new Error("Attempted to spawn unrecognised Role");
         }

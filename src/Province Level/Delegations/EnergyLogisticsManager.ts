@@ -55,18 +55,28 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
   Interrupt(creep: AbstractCreep, afterFirst : AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
     let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
-    if(creepFree > 0 && afterFirst && !afterFirst.pos.isNearTo(creep.pos) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+    if(creepFree > 0)
     {
-      let nearbyOpportunity = this.sources.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree);
-      if(nearbyOpportunity.length > 0)
+      if(!(nextAction instanceof PickupAction))
       {
-        let yoink = nearbyOpportunity[0];
-        if(yoink instanceof Structure)
+        let adjacentDropped = creep.pos.findInRange(FIND_DROPPED_RESOURCES,1,{filter: (d) => d.amount >= creepFree});
+        if(adjacentDropped.length > 0)
         {
-          return new WithdrawAction(yoink,RESOURCE_ENERGY,creep);
-        } else
+          return new PickupAction(adjacentDropped[0]);
+        }
+      } else if(afterFirst && !afterFirst.pos.isNearTo(creep.pos) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+      {
+        let nearbyOpportunity = this.sources.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree);
+        if(nearbyOpportunity.length > 0)
         {
-          return new PickupAction(yoink,creep);
+          let yoink = nearbyOpportunity[0];
+          if(yoink instanceof Structure)
+          {
+            return new WithdrawAction(yoink,RESOURCE_ENERGY,creep);
+          } else
+          {
+            return new PickupAction(yoink,creep);
+          }
         }
       }
     }
@@ -140,7 +150,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     return true;
   }
 
-  sinkTypeOrder: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_SPAWN, STRUCTURE_STORAGE];
+  sinkTypeOrder: StructureConstant[] = [STRUCTURE_TOWER, STRUCTURE_STORAGE, STRUCTURE_SPAWN, STRUCTURE_EXTENSION];
 
   lastCreepsOwned:number = 0;
   Execute(): void {
@@ -153,10 +163,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getMultiRoomRangeTo(this.storagePos)));
 
-    let droppedResources = flatten(this.province.Prefectures.map((p) => p.room?.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.amount >= 1000 }) ?? []));
-
     //Sources will likely later include more sources
-    this.sources = [...mineContainers, ...droppedResources];
+    this.sources = [...mineContainers];
 
     this.sinks = this.province.Capital.room.find(FIND_STRUCTURES)
       .filter((s): s is AnyStoreStructure => this.sinkTypeOrder.includes(s.structureType))

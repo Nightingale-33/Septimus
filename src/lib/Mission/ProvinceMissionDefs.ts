@@ -5,6 +5,7 @@ import { OwnedControllerMission } from "../../Province Level/Missions/OwnedContr
 import { BaseBuild } from "../../Prefecture Level/RoomPlanning/RoomBuildMission";
 import { ReserveControllerMission } from "../../Province Level/Missions/ReserveControllerMission";
 import { ClaimControllerMission } from "../../Province Level/Missions/ClaimControllerMission";
+import { DefendPrefectureMission } from "../../Province Level/Missions/DefendPrefectureMission";
 
 export class ProvinceMissionDefs {
   static getProvinceMissionFromFlag(flag: Flag, province: Province) : ProvinceMission | null {
@@ -24,6 +25,10 @@ export class ProvinceMissionDefs {
   }
 
   private static getRedProvinceMission(flag: Flag, province: Province) : ProvinceMission | null {
+    switch(flag.secondaryColor)
+    {
+      case COLOR_GREY: return new DefendPrefectureMission(flag,province);
+    }
     return null;
   }
 

@@ -4,6 +4,7 @@ import { CLAIMER } from "../../lib/Roles/Role.Claimer";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { ReserveAction } from "../../lib/Actions/Creep/Action.Reserve";
 import { Prefecture } from "../../Prefecture Level/Prefecture";
+import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 
 export class ReserveControllerMission extends ProvinceMission {
   priority: number = 250;
@@ -17,22 +18,33 @@ export class ReserveControllerMission extends ProvinceMission {
     super(flag, province, `${province.name}_Reserve_${flag.pos.roomName}`);
   }
 
+  prefecture : Prefecture | undefined;
+
   run(): void {
-    if(!this.province.Prefectures.find((p) => p.RoomName === this.flag.pos.roomName))
+    if(!(this.prefecture = this.province.Prefectures.find((p) => p.RoomName === this.flag.pos.roomName)))
     {
-      this.province.Prefectures.push(new Prefecture(this.province,this.flag.pos.roomName));
+      this.province.Prefectures.push(this.prefecture = new Prefecture(this.province,this.flag.pos.roomName));
     }
 
     let claimer = this.province.RequestCreeps(CLAIMER, 1, this.Id, this.priority);
 
     for (const c of claimer) {
       let plan = c.memory.plan;
+      if(plan.peek() instanceof IdleAction)
+      {
+        plan.clear(c);
+      }
+
       if (!plan.isEmpty()) {
         continue;
       }
 
       if (!c.pos.isNearTo(this.pos)) {
         plan.append(new MoveAction(this.pos, 1));
+        if(this.prefecture?.visibility)
+        {
+          plan.append(new ReserveAction(this.prefecture.controller!));
+        }
       } else {
         plan.append(new ReserveAction(c.room.controller!));
       }

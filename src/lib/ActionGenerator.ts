@@ -13,6 +13,7 @@ import { log } from "../utils/Logging/Logger";
 import { Action } from "./Action";
 import { DROP_ID, DropAction } from "./Actions/Creep/Action.Drop";
 import { SCOUT_ID, ScoutAction } from "./Actions/Creep/Action.Scout";
+import { MELEE_ID, MeleeAction } from "./Actions/Creep/Combat/Action.MeleeAttack";
 
 export function ActionfromJSON(data: string): Action | null {
   let components = data.split(":", 2);
@@ -69,6 +70,10 @@ export function ActionfromJSON(data: string): Action | null {
 
     case SCOUT_ID: {
       return ScoutAction.fromJSON(actionData);
+    }
+
+    case MELEE_ID: {
+      return MeleeAction.fromJSON(actionData);
     }
 
     default: {

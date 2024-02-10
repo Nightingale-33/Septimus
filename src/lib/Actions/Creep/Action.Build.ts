@@ -5,6 +5,7 @@ import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
 import { MovementRoomCallback } from "../../../utils/MovementUtils";
+import { log } from "../../../utils/Logging/Logger";
 
 export const BUILD_ID: string = "B";
 
@@ -26,11 +27,18 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     let reservation: BuildReservation | undefined = undefined;
     if (creep) {
       let reservationAmount = Math.min(creep.store.getUsedCapacity(RESOURCE_ENERGY), constructionSite.progressTotal - constructionSite.progress);
-      if(reservationAmount <= 0)
+      if(reservationAmount < 0)
       {
         throw new Error(`Negative Build Reservation: ${creep.id}, amount: ${reservationAmount}: ${JSON.stringify(creep)}`);
       }
-      reservation = new BuildReservation(creep, constructionSite, reservationAmount);
+      if(reservationAmount === 0)
+      {
+        log(1,`${creep.name} attempted to make a 0 Build Reservation: ${JSON.stringify(creep)}`);
+      } else
+      {
+        reservation = new BuildReservation(creep, constructionSite, reservationAmount);
+      }
+
     }
     super(reservation);
     this.TargetId = constructionSite.id;

@@ -1,5 +1,5 @@
 import { Delegation } from "../../lib/Delegation";
-import { CostMatrixAdjuster, MovementRoomCallback } from "../../utils/MovementUtils";
+import { CostMatrixAdjuster, FreshMovementRoomCallback, MovementRoomCallback } from "../../utils/MovementUtils";
 import { Province } from "../Province";
 import { log } from "../../utils/Logging/Logger";
 
@@ -34,7 +34,7 @@ export class RoadBuilder extends Delegation implements CostMatrixAdjuster {
         cm.set(cs.pos.x,cs.pos.y,1);
       } else
       {
-        cm.set(cs.pos.x,cs.pos.y,50);
+        cm.set(cs.pos.x,cs.pos.y, cs.progress === 0 ? 0 : 50);
       }
     }
 
@@ -76,7 +76,7 @@ export class RoadBuilder extends Delegation implements CostMatrixAdjuster {
         let goalPoint = nextRequest;
 
         this.planning = true;
-        let path = PathFinder.search(originPoint, { pos: goalPoint, range: 1 }, { roomCallback: MovementRoomCallback, swampCost:2, plainCost:2 });
+        let path = PathFinder.search(originPoint, { pos: goalPoint, range: 1 }, { roomCallback: FreshMovementRoomCallback, swampCost:2, plainCost:2 });
         this.planning = false;
         if (!path.incomplete) {
           for (const point of path.path) {

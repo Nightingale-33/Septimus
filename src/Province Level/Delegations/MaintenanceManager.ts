@@ -43,7 +43,7 @@ export class RepairingManager extends Delegation implements Behaviour {
       if (repairableNow.length === 0) {
         return null;
       }
-      let bestSite = max(repairableNow, (cs) => RepairReservation.GetPostReservationHits(cs) / cs.hitsMax);
+      let bestSite = min(repairableNow, (cs) => RepairReservation.GetPostReservationHits(cs) / cs.hitsMax);
       log(1, `Planning to Repair: ${bestSite.id} at: ${bestSite.pos?.toJSON()}`);
       return new RepairAction(bestSite, creep);
 
@@ -55,12 +55,12 @@ export class RepairingManager extends Delegation implements Behaviour {
   }
 
   rampartHpThreshold(s: StructureRampart): number {
-    let controllerLevel = this.province.Capital.controller.level;
+    let controllerLevel = this.province.Capital.controller?.level ?? 0;
     return (10_000 * (controllerLevel));
   }
 
   get repairables(): Structure[] {
-    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold(s) : s.hits < s.hitsMax)), 0, "Repair" + this.province.name + "Structures");
+    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold(s) : s.hits < s.hitsMax * 0.75)), 0, "Repair" + this.province.name + "Structures");
   }
 
   ShouldExecute(): boolean {

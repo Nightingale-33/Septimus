@@ -59,14 +59,14 @@ export class BaseBuild extends ProvinceMission implements CostMatrixAdjuster {
       return;
     }
 
-    if(this.lastControllerLevel < this.province.Capital.controller.level)
+    if(this.lastControllerLevel < (this.province.Capital.controller?.level ?? 0))
     {
       this.buildIndex = 0;
     }
 
-    this.lastControllerLevel = this.province.Capital.controller.level;
+    this.lastControllerLevel = (this.province.Capital.controller?.level ?? 0);
 
-    if (this.province.Building.ConstructionSites.filter((cs) => cs.structureType !== STRUCTURE_ROAD).length > Math.pow(this.province.Capital.controller.level, 2)) {
+    if (this.province.Building.ConstructionSites.filter((cs) => cs.structureType !== STRUCTURE_ROAD).length > Math.pow((this.province.Capital.controller?.level ?? 0), 2)) {
       return;
     }
 

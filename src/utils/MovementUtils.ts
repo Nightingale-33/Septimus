@@ -57,26 +57,30 @@ export function IsCostMatrixAdjuster<T extends Object>(obj : T) : boolean
 
 export function MovementRoomCallback(roomName: string): boolean | CostMatrix {
   return global.cache.UseValue(() => {
-    let cm = new PathFinder.CostMatrix();
-    if(global.empire)
+    return FreshMovementRoomCallback(roomName);
+  }, 10,`${roomName}_CostMatrix`);
+}
+
+export function FreshMovementRoomCallback(roomName: string): boolean | CostMatrix {
+  let cm = new PathFinder.CostMatrix();
+  if(global.empire)
+  {
+    let empireMissions = Object.values(global.empire.ActiveMissions);
+    let empireDelegations = global.empire.Delegations;
+    let relevantPrefecture = flatten(map(global.empire.Provinces ?? [],(p) => p.Prefectures)).find((p) => p.RoomName === roomName);
+    if(relevantPrefecture)
     {
-      let empireMissions = Object.values(global.empire.ActiveMissions);
-      let empireDelegations = global.empire.Delegations;
-      let relevantPrefecture = flatten(map(global.empire.Provinces ?? [],(p) => p.Prefectures)).find((p) => p.RoomName === roomName);
-      if(relevantPrefecture)
+      let missions = empireMissions.concat(Object.values(relevantPrefecture.province.ActiveMissions)).filter((m) : m is (Mission & CostMatrixAdjuster) => m.pos.roomName === roomName && IsCostMatrixAdjuster(m));
+      let delegations = empireDelegations.concat(relevantPrefecture.province.Delegations.concat(relevantPrefecture.Delegations)).filter((d) : d is (Delegation & CostMatrixAdjuster) => IsCostMatrixAdjuster(d));
+      for(const mission of missions)
       {
-        let missions = empireMissions.concat(Object.values(relevantPrefecture.province.ActiveMissions)).filter((m) : m is (Mission & CostMatrixAdjuster) => m.pos.roomName === roomName && IsCostMatrixAdjuster(m));
-        let delegations = relevantPrefecture.province.Delegations.concat(relevantPrefecture.Delegations).filter((d) : d is (Delegation & CostMatrixAdjuster) => IsCostMatrixAdjuster(d));
-        for(const mission of missions)
-        {
-          cm = mission.adjustCostMatrix(roomName,cm);
-        }
-        for(const delegation of delegations)
-        {
-          cm = delegation.adjustCostMatrix(roomName,cm);
-        }
+        cm = mission.adjustCostMatrix(roomName,cm);
+      }
+      for(const delegation of delegations)
+      {
+        cm = delegation.adjustCostMatrix(roomName,cm);
       }
     }
-    return cm;
-  }, 10,`${roomName}_CostMatrix`);
+  }
+  return cm;
 }

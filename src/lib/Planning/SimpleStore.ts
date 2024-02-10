@@ -13,7 +13,7 @@ export class SimpleStore implements SimpleStoreMethods {
   contents: {[id:string]: number};
 
   constructor(store: StoreDefinition | SimpleStore) {
-    this.totalCapacity = store.getCapacity();
+    this.totalCapacity = store.getCapacity() ?? 0;
     if(store instanceof SimpleStore)
     {
       this.contents = cloneDeep(store.contents);
