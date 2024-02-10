@@ -1,6 +1,6 @@
 import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
-import { flatten, max, min, pick, sortBy, sum } from "lodash";
+import { flatten, sortBy, sum } from "lodash";
 import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
 import { HAULER } from "../../lib/Roles/Role.Hauler";
 import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
@@ -76,8 +76,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
   PlanNext(creep: AbstractCreep): Action | null {
     // if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
     //   //Consider whether to empty or refill
-    //   let distanceSources= this.sources.filter((s) => ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used > 0).map((s) => [s,s.pos.getRangeTo(creep.pos)] as [AnyStoreStructure|Resource,number]);
-    //   let distanceSinks = this.sinks.filter((s) => ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).free > 0).map((s) => [s,s.pos.getRangeTo(creep.pos)] as [AnyStoreStructure,number]);
+    //   let distanceSources= this.sources.filter((s) => ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used > 0).map((s) => [s,s.pos.getMultiRoomRangeTo(creep.pos)] as [AnyStoreStructure|Resource,number]);
+    //   let distanceSinks = this.sinks.filter((s) => ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).free > 0).map((s) => [s,s.pos.getMultiRoomRangeTo(creep.pos)] as [AnyStoreStructure,number]);
     //   let closestSource = min(distanceSources,(s) => s[1]);
     //   let closestSink = min(distanceSinks,(s) => s[1]);
     //   if(closestSource[0] !== undefined && closestSource[1] < closestSink[1])
@@ -97,7 +97,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
       let fillTarget: AnyStoreStructure | undefined = undefined;
-      let sortedSinks = sortBy(sortBy(this.sinks, (s) => s.pos.getRangeTo(creep.pos)),(s) => this.sinkTypeOrder.indexOf(s.structureType));
+      let sortedSinks = sortBy(sortBy(this.sinks, (s) => s.pos.getMultiRoomRangeTo(creep.pos)),(s) => this.sinkTypeOrder.indexOf(s.structureType));
       for (const sink of sortedSinks) {
         if (ResourceReservation.GetPostReservationStore(sink, RESOURCE_ENERGY).free > 0) {
           fillTarget = sink;
@@ -112,7 +112,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
       let sourceTarget: AnyStoreStructure | Resource | undefined = undefined;
-      let sortedSources = sortBy(this.sources, (s) => s.pos.getRangeTo(creep.pos));
+      let sortedSources = sortBy(this.sources, (s) => s.pos.getMultiRoomRangeTo(creep.pos));
       for (const source of sortedSources) {
         if (ResourceReservation.GetPostReservationStore(source, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
           sourceTarget = source;
@@ -151,9 +151,9 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       .filter((c): c is StructureContainer => c instanceof StructureContainer)
       .sort((a, b) => ResourceReservation.GetPostReservationStore(b, RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a, RESOURCE_ENERGY).used);
 
-    carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getRangeTo(this.storagePos)));
+    carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getMultiRoomRangeTo(this.storagePos)));
 
-    let droppedResources = flatten(this.province.Prefectures.map((p) => p.room.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.amount >= 1000 })));
+    let droppedResources = flatten(this.province.Prefectures.map((p) => p.room?.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.amount >= 1000 }) ?? []));
 
     //Sources will likely later include more sources
     this.sources = [...mineContainers, ...droppedResources];

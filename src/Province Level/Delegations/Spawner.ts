@@ -6,6 +6,8 @@ import { HARVESTER, SpawnHarvester } from "../../lib/Roles/Role.Harvester";
 import { SpawnWorker, WORKER } from "../../lib/Roles/Role.Worker";
 import { log } from "../../utils/Logging/Logger";
 import { HAULER, SpawnHauler } from "../../lib/Roles/Role.Hauler";
+import { SCOUT, SpawnScout } from "../../lib/Roles/Role.Scout";
+import { CLAIMER, SpawnClaimer } from "../../lib/Roles/Role.Claimer";
 
 export class Spawner extends Delegation {
   name: string = "Spawner_";
@@ -67,6 +69,12 @@ export class Spawner extends Delegation {
             break;
           case HAULER:
             spawnedName = SpawnHauler(spawn,this.province);
+            break;
+          case SCOUT:
+            spawnedName = SpawnScout(spawn,this.province);
+            break;
+          case CLAIMER:
+            spawnedName = SpawnClaimer(spawn,this.province);
             break;
           default: throw new Error("Attempted to spawn unrecognised Role");
         }

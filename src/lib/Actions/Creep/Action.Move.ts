@@ -1,7 +1,6 @@
 import { Action } from "../../Action";
-import { all, any, isNumber, parseInt } from "lodash";
-import { GetPositionFromDirection, MovementRoomCallback } from "../../../utils/MovementUtils";
-import { log } from "../../../utils/Logging/Logger";
+import { parseInt } from "lodash";
+import { MovementRoomCallback } from "../../../utils/MovementUtils";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
@@ -63,7 +62,7 @@ export class MoveAction extends Action {
   }
 
   ApproxTimeLeft(creep: AbstractCreep): number {
-    return creep.pos.getRangeTo(this.Target);
+    return creep.pos.getMultiRoomRangeTo(this.Target);
   }
 
   apply(ac: AbstractCreep) {

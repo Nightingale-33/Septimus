@@ -46,7 +46,7 @@ export class ReservationManager extends Delegation
             {
               let reserver = reservation.reserver;
               let rObj = Game.getObjectById(reserver);
-              if(rObj)
+              if(rObj && rObj.pos.roomName === obj.pos.roomName)
               {
                 vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:reservation.amount > 0 ? "#00FF00" : "#FF0000"});
               }
@@ -71,7 +71,7 @@ export class ReservationManager extends Delegation
               {
                 let reserver = reservation.reserver;
                 let rObj = Game.getObjectById(reserver);
-                if(rObj)
+                if(rObj && rObj.pos.roomName === obj.pos.roomName)
                 {
                   vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:"#00A977"});
                 }
@@ -97,7 +97,7 @@ export class ReservationManager extends Delegation
             {
               let reserver = reservation.reserver;
               let rObj = Game.getObjectById(reserver);
-              if(rObj)
+              if(rObj && rObj.pos.roomName === obj.pos.roomName)
               {
                 vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:"#D54E00"});
               }

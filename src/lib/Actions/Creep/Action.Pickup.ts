@@ -1,6 +1,3 @@
-import { Action } from "../../Action";
-import { all, remove } from "lodash";
-//import { AddResourceReservation, Reserves } from "../../utils/Reservations/ResourceReservations";
 import { ReservingAction } from "../../Reservations/ReservationAction";
 import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
@@ -66,7 +63,7 @@ export class PickupAction extends ReservingAction<ResourceReservation> {
 
   ApproxTimeLeft(creep: AbstractCreep): number {
     let expected = 1;
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    let travel = Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0,1) - 1;
     return travel + expected;
   }
 

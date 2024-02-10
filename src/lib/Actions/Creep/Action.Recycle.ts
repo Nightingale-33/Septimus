@@ -1,4 +1,3 @@
-import { all } from "lodash";
 import { Action } from "../../Action";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
@@ -62,7 +61,7 @@ export class RecycleAction extends Action {
 
   ApproxTimeLeft(creep: AbstractCreep): number {
     let expected = 1;
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    let travel = Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0,1) - 1;
     return travel + expected;
   }
 

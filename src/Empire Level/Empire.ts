@@ -6,10 +6,9 @@ import { Mission } from "../lib/Mission/Mission";
 import { ProvinceMissionDefs } from "../lib/Mission/ProvinceMissionDefs";
 import { EmpireMissionDefs } from "../lib/Mission/EmpireMissionDefs";
 import { defaultsDeep } from "lodash";
-import { BuildReservation } from "../lib/Reservations/BuildReservations";
-import { ResourceReservation } from "../lib/Reservations/ResourceReservations";
-import { RepairReservation } from "../lib/Reservations/RepairReservations";
 import { ReservationManager } from "./ReservationManager";
+import { ProvinceExpansion } from "./ProvinceExpansion";
+import { RoomIntelligence } from "./RoomIntel/RoomIntelligence";
 
 declare global {
   interface Memory {
@@ -29,7 +28,8 @@ declare global {
 }
 
 const defaultsEmpireMemory : EmpireMemory = {
-  Provinces: {}
+  Provinces: {},
+  roomDatabase: ""
 }
 
 const defaultsMemory : Memory = {
@@ -50,6 +50,7 @@ const defaultsMemory : Memory = {
 
 export class Empire {
   Provinces: { [id: string] : Province} = {};
+  RoomIntel : RoomIntelligence
   Delegations: Delegation[] = [];
 
   ActiveMissions: {[id: string] : Mission} = {};
@@ -61,7 +62,7 @@ export class Empire {
   }
 
   constructor() {
-    defaultsDeep(Memory,defaultsMemory);
+    Memory.Empire = defaultsDeep(Memory.Empire,defaultsEmpireMemory);
   }
 
   Initialise() {
@@ -76,9 +77,7 @@ export class Empire {
 
     if(!Memory.Empire)
     {
-      Memory.Empire = {
-        Provinces: {}
-      };
+      Memory.Empire = defaultsEmpireMemory;
     }
 
     for (const roomName in Game.rooms) {
@@ -92,6 +91,9 @@ export class Empire {
 
     this.Delegations.push(global.cache);
     this.Delegations.push(new ReservationManager());
+    this.RoomIntel = new RoomIntelligence();
+    this.Delegations.push(this.RoomIntel);
+    this.Delegations.push(new ProvinceExpansion());
 
     this.Initialised = true;
     log(1, "Empire Initialised");

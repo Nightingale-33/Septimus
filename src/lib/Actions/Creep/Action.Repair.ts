@@ -87,7 +87,7 @@ export class RepairAction extends ReservingAction<RepairReservation> {
     let fullExpenditure = Math.ceil(remainingEnergy / (creepWorkParts));
     let progress = (this.Target.hitsMax - this.Target.hits) / (creepWorkParts * REPAIR_POWER);
     let expected = Math.min(progress,fullExpenditure);
-    let travel = Math.max(0,Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,3) - 3);
+    let travel = Math.max(0,Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0,3) - 3);
     return travel + expected;
   }
 

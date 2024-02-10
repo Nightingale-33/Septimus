@@ -1,13 +1,9 @@
 import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
-import { defaultsDeep, min } from "lodash";
+import { defaultsDeep } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
 import { log } from "../../utils/Logging/Logger";
 import { UpgradeAction } from "../../lib/Actions/Creep/Action.Upgrade";
-import { ResourceReservation } from "../../lib/Reservations/ResourceReservations";
-import { WithdrawAction } from "../../lib/Actions/Creep/Action.Withdraw";
-import { PickupAction } from "../../lib/Actions/Creep/Action.Pickup";
-import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
@@ -81,7 +77,7 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
     }
 
     let levelAmount = controller.level === 8 ? 1 : controller.level;
-    let creeps = this.province.RequestCreeps(WORKER, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
+    let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
 
     let requestPriority = controller.ticksToDowngrade < 2500 ? 500 : this.priority;
 

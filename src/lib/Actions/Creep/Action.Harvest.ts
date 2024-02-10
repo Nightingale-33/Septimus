@@ -1,5 +1,4 @@
 import { Action } from "../../Action";
-import { all } from "lodash";
 import { moveTo } from "screeps-cartographer";
 import { CountParts } from "../../../utils/CreepUtils";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
@@ -67,7 +66,7 @@ export class HarvestAction extends Action {
     {
       expected = this.Target.mineralAmount / CountParts(creep)[WORK] * HARVEST_POWER;
     }
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    let travel = Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0,1) - 1;
     return travel + expected;
   }
 

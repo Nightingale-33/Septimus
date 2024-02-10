@@ -1,6 +1,6 @@
 import { Prefecture } from "../Prefecture Level/Prefecture";
 import { log } from "../utils/Logging/Logger";
-import { defaultsDeep, filter, flatten, remove, sum } from "lodash";
+import { any, defaultsDeep, filter, flatten, remove, sum } from "lodash";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Empire } from "../Empire Level/Empire";
@@ -14,11 +14,10 @@ import { EnergyLogisticsManager } from "./Delegations/EnergyLogisticsManager";
 import { MiningMission } from "./Missions/MiningMission";
 import { BuildingManager } from "./Delegations/BuildingManager";
 import { CountParts } from "../utils/CreepUtils";
-import * as wasi from "wasi";
-import { options } from "tsconfig-paths/lib/options";
 import { BaseLocationDecider } from "../Prefecture Level/RoomPlanning/BaseLocationDecider";
 import { RepairingManager } from "./Delegations/MaintenanceManager";
 import { RoadBuilder } from "./Delegations/RoadBuilder";
+import { PrefectureAcquirer } from "./Delegations/PrefectureAcquirer";
 
 declare global {
   interface ProvinceMemory {
@@ -39,25 +38,18 @@ export interface CreepRequestOptions {
   spawnRoleSelector?: (roles: Role[]) => Role,
   spawnPredicate?: (province: Province) => boolean,
   maxCreeps?: number,
-  stealCreeps?: boolean
+  stealCreeps?: boolean,
+  stopIfIdle? : boolean
 }
 
-interface creepRequestOptions extends CreepRequestOptions {
-  deRegisterExcess: boolean,
-  requestSpawn: boolean,
-  spawnRoleSelector: (roles: Role[]) => Role,
-  spawnPredicate: (province: Province) => boolean,
-  maxCreeps: number,
-  stealCreeps: boolean
-}
-
-const defaultCreepRequestOptions: creepRequestOptions = {
+const defaultCreepRequestOptions: CreepRequestOptions = {
   deRegisterExcess: true,
   requestSpawn: true,
   spawnRoleSelector: (roles) => roles[0],
   spawnPredicate: (province) => province.Capital.room.energyAvailable >= 300 && (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75,
   maxCreeps: Infinity,
-  stealCreeps: false
+  stealCreeps: false,
+  stopIfIdle: true
 };
 
 const defaultsProvinceMemory: ProvinceMemory = {
@@ -106,15 +98,15 @@ export class Province {
   }
 
   get sources(): Source[] {
-    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.sources)), 100, "Prov" + this.name + "Sources");
+    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.sources)), 5, "Prov" + this.name + "Sources");
   }
 
   get structures() : Structure[] {
-    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.room.find(FIND_STRUCTURES))), 0, "Prov" + this.name + "Structures");
+    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.structures)), 0, "Prov" + this.name + "Structures");
   }
 
   get spawns(): StructureSpawn[] {
-    return global.cache.UseValue(() => flatten(this.Prefectures.map((p) => p.room.find(FIND_MY_SPAWNS))), 0, "Prov" + this.name + "Spawns");
+    return global.cache.UseValue(() => flatten(this.structures.filter((s) : s is StructureSpawn => s instanceof StructureSpawn)), 0, "Prov" + this.name + "Spawns");
   }
 
   get storage(): StructureStorage | null {
@@ -151,6 +143,8 @@ export class Province {
     this.Building = new BuildingManager(this);
     this.Repairing = new RepairingManager(this);
     this.Roads = new RoadBuilder(this);
+
+    this.GeneralDelegations.push(new PrefectureAcquirer(this));
 
     this.Capital.Delegations.push(new BaseLocationDecider(this, this.Capital));
 
@@ -204,7 +198,7 @@ export class Province {
   }
 
   RequestCreeps(role: Role, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
-    let options: creepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
+    let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
 
     //Gather pre-assigned
     let assignedCreeps: Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId);
@@ -215,7 +209,7 @@ export class Province {
     }
 
     //All done
-    if (assignedCreeps.length >= amount) {
+    if (assignedCreeps.length >= amount || (options.stopIfIdle && any(assignedCreeps, (c) => c.memory.plan.peek() instanceof IdleAction))) {
       return assignedCreeps;
     }
 
@@ -261,7 +255,7 @@ export class Province {
     if (difference < 1) {
       throw new Error(`Somehow got to Spawn Requests without needing any: ${amount}, ${assignedCreeps.length}, ${difference}`);
     }
-    if (options.spawnPredicate(this)) {
+    if (options.spawnPredicate!(this)) {
       this.Spawning.RequestCreepSpawn(role, requestId, requestPriority);
     } else {
       log(3, `Failed Spawn Predicate for request from ${requestId}`);
@@ -272,7 +266,7 @@ export class Province {
   }
 
   RequestParts(usableRoles: Role[], part: BodyPartConstant, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
-    let options: creepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
+    let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
 
     if (usableRoles.length === 0) {
       throw new Error("0 Roles designated when requesting by parts");
@@ -281,10 +275,10 @@ export class Province {
     //Gather pre-assigned
     let assignedCreeps: Creep[] = this.creeps.filter((c) => c.memory.assignmentId === requestId)
       .sort((a, b) => CountParts(b)[WORK] - CountParts(a)[WORK]);
-    if (options.deRegisterExcess && (countPart(assignedCreeps) > amount || assignedCreeps.length > options.maxCreeps)) {
+    if (options.deRegisterExcess && (countPart(assignedCreeps) > amount || assignedCreeps.length > options.maxCreeps!)) {
       let keptCreepNumber = 1;
       let keptCreeps = assignedCreeps.slice(0, keptCreepNumber);
-      while (countPart((keptCreeps = assignedCreeps.slice(0, keptCreepNumber))) < amount && keptCreeps.length < options.maxCreeps) {
+      while (countPart((keptCreeps = assignedCreeps.slice(0, keptCreepNumber))) < amount && keptCreeps.length < options.maxCreeps!) {
         keptCreepNumber++;
       }
       if (keptCreepNumber < assignedCreeps.length) {
@@ -296,12 +290,12 @@ export class Province {
     }
 
     //All done
-    if (countPart(assignedCreeps) >= amount || assignedCreeps.length >= options.maxCreeps) {
+    if (countPart(assignedCreeps) >= amount || assignedCreeps.length >= options.maxCreeps!  || (options.stopIfIdle && any(assignedCreeps, (c) => c.memory.plan.peek() instanceof IdleAction))) {
       return assignedCreeps;
     }
 
     //Claim existing
-    while (countPart(assignedCreeps) < amount && assignedCreeps.length < options.maxCreeps) {
+    while (countPart(assignedCreeps) < amount && assignedCreeps.length < options.maxCreeps!) {
       let unassignedCreep = this.creeps.find((c) =>
         usableRoles.includes(c.memory.role) && c.memory.assignmentId === undefined);
       if (unassignedCreep) {
@@ -330,8 +324,8 @@ export class Province {
     //
 
     //Acquired enough
-    let spawnRole = options.spawnRoleSelector(usableRoles);
-    if (countPart(assignedCreeps) >= amount || assignedCreeps.length >= options.maxCreeps || !options.requestSpawn) {
+    let spawnRole = options.spawnRoleSelector!(usableRoles);
+    if (countPart(assignedCreeps) >= amount || assignedCreeps.length >= options.maxCreeps! || !options.requestSpawn) {
       if(options.requestSpawn)
       {
         log(3,"Removing existing spawn requests");
@@ -346,7 +340,7 @@ export class Province {
     if (difference < 1) {
       throw new Error(`Somehow got to Spawn Requests without needing any: ${difference}`);
     }
-    if (options.spawnPredicate(this)) {
+    if (options.spawnPredicate!(this)) {
       this.Spawning.RequestCreepSpawn(spawnRole, requestId, requestPriority);
     } else {
       log(3, `Failed Spawn Predicate for request from ${requestId}`);

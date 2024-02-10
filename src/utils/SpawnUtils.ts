@@ -1,4 +1,4 @@
-import { countBy } from "lodash";
+import { countBy, sortBy } from "lodash";
 import { log } from "./Logging/Logger";
 import { Role } from "../lib/Roles/Role";
 import { Plan } from "../lib/Creep/Plan";
@@ -19,10 +19,31 @@ export function AvailableSpawnEnergy(spawn : StructureSpawn): number
   return spawn.room.energyAvailable;
 }
 
+export const defaultBodySortOrder : BodyPartConstant[] = [TOUGH,CARRY,WORK,ATTACK,RANGED_ATTACK,CLAIM,HEAL,MOVE];
+
+function defaultBodySort(a : BodyPartConstant) : number
+{
+  return defaultBodySortOrder.indexOf(a);
+}
+
+export function SortBodyParts(body: BodyPartConstant[], comparisonFunction: (a : BodyPartConstant) => number = defaultBodySort): BodyPartConstant[]
+{
+  return sortBy(body,comparisonFunction);
+}
+
 function FixBodyWithMove(body : BodyPartConstant[]) : BodyPartConstant[]
 {
   let perType = countBy(body);
-  let neededAdditionalMoveParts = Math.floor(Math.max(0, (perType[CARRY] ?? 0) * 2 + (perType[WORK] ?? 0) - (perType[MOVE] ?? 0) * 2) / 2);
+  let neededAdditionalMoveParts = Math.floor(Math.max(0,
+    (perType[CARRY] ?? 0) * 2 +
+    (perType[WORK] ?? 0) +
+    (perType[TOUGH] ?? 0) +
+    (perType[CLAIM] ?? 0) +
+    (perType[ATTACK] ?? 0) +
+    (perType[RANGED_ATTACK] ?? 0) +
+    (perType[HEAL] ?? 0)
+    - (perType[MOVE] ?? 0) * 2)
+    / 2);
   if(neededAdditionalMoveParts == 0)
   {
     return body;
@@ -31,7 +52,7 @@ function FixBodyWithMove(body : BodyPartConstant[]) : BodyPartConstant[]
   return body.concat(additionalMove);
 }
 
-export function GetLargestBody(spawn : StructureSpawn, baseBody: BodyPartConstant[], bodyAddition: BodyPartConstant[], maximumAddons : number = Infinity, fixMove : boolean = true)
+export function GetLargestBody(spawn : StructureSpawn, baseBody: BodyPartConstant[], bodyAddition: BodyPartConstant[], maximumAddons : number = Infinity, fixMove : boolean = true, sorted: boolean = true, sortBy : (a:BodyPartConstant) => number = defaultBodySort)
 {
     let bodyToSpawn = baseBody;
     let lastWorkingBody : BodyPartConstant[] = [];
@@ -46,6 +67,10 @@ export function GetLargestBody(spawn : StructureSpawn, baseBody: BodyPartConstan
       addons++;
     }
     bodyToSpawn = lastWorkingBody;
+    if(sorted)
+    {
+      bodyToSpawn = SortBodyParts(bodyToSpawn,sortBy);
+    }
     return bodyToSpawn;
 }
 

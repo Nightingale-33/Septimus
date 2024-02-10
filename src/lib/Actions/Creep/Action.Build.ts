@@ -87,7 +87,7 @@ export class BuildAction extends ReservingAction<BuildReservation> {
     let fullExpenditure = Math.ceil(remainingEnergy / (creepWorkParts * BUILD_POWER));
     let progress = (this.Target.progressTotal - this.Target.progress) / (creepWorkParts * BUILD_POWER);
     let expected = Math.min(progress, fullExpenditure);
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0, 3) - 3;
+    let travel = Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0, 3) - 3;
     return travel + expected;
   }
 

@@ -1,6 +1,6 @@
 import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
-import { flatten, max, min } from "lodash";
+import { flatten, sortByAll } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
 import { BuildReservation } from "../../lib/Reservations/BuildReservations";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
@@ -8,13 +8,14 @@ import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { EnergyAcquisitionBehaviour } from "../../lib/Planning/Behaviours/EnergyAcquisition";
+import { log } from "../../utils/Logging/Logger";
 
 export class BuildingManager extends Delegation implements Behaviour {
   name: string = "BuildingManager";
   province: Province;
 
   get ConstructionSites(): ConstructionSite[] {
-    return global.cache.UseValue(() => flatten(this.province.Prefectures.map((p) => p.room.find(FIND_MY_CONSTRUCTION_SITES))), 0, this.Id + "_Sites");
+    return global.cache.UseValue(() => sortByAll(flatten(this.province.Prefectures.map((p) => p.constructionSites)),(cs) => BuildableStructurePriorityOrder.indexOf(cs.structureType),(cs) => ((cs.progressTotal - cs.progress)/cs.progressTotal)), 0, this.Id + "_Sites");
   }
 
   constructor(province: Province) {
@@ -45,7 +46,7 @@ export class BuildingManager extends Delegation implements Behaviour {
       if (buildable.length === 0) {
         return null;
       }
-      let bestSite = min(buildable, (cs) => cs.progressTotal - BuildReservation.GetPostReservationProgress(cs));
+      let bestSite = buildable[0];
       return new BuildAction(bestSite, creep);
     }
   }
@@ -61,8 +62,9 @@ export class BuildingManager extends Delegation implements Behaviour {
 
   Execute(): void {
     //Determine how many builders (Workers)
-    let closestToDone = max(this.ConstructionSites, (cs) => cs.progress / cs.progressTotal);
-    let carryParts = Math.ceil((closestToDone.progressTotal - closestToDone.progress) / (CARRY_CAPACITY));
+    let topPrio = this.ConstructionSites[0];
+    let carryParts = Math.ceil((topPrio.progressTotal - topPrio.progress) / (CARRY_CAPACITY));
+    log(5,`${this.Id} Requesting: ${carryParts} Carry Parts for ${topPrio.pos.toJSON()}`);
     let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {
       stealCreeps: true,
       deRegisterExcess: true
@@ -75,3 +77,5 @@ export class BuildingManager extends Delegation implements Behaviour {
   }
 
 }
+
+export const BuildableStructurePriorityOrder : BuildableStructureConstant[] = [STRUCTURE_SPAWN, STRUCTURE_STORAGE, STRUCTURE_EXTENSION,STRUCTURE_TOWER, STRUCTURE_ROAD, STRUCTURE_LINK, STRUCTURE_WALL, STRUCTURE_CONTAINER, STRUCTURE_RAMPART, STRUCTURE_LAB, STRUCTURE_OBSERVER, STRUCTURE_POWER_SPAWN, STRUCTURE_FACTORY];

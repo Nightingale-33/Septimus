@@ -1,7 +1,7 @@
 import { HARVESTER } from "../../lib/Roles/Role.Harvester";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { HarvestAction } from "../../lib/Actions/Creep/Action.Harvest";
-import { defaultsDeep, max, sortBy } from "lodash";
+import { defaultsDeep, max } from "lodash";
 import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
@@ -17,7 +17,6 @@ import { RepairReservation } from "../../lib/Reservations/RepairReservations";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
-import { DropAction } from "../../lib/Actions/Creep/Action.Drop";
 
 interface MiningSiteMemory extends ProvinceMissionMemory {
 }
@@ -178,7 +177,7 @@ export class MiningMission extends ProvinceMission implements Behaviour {
     //else they are equally big so no fighting
     log(1,`Mining Site: ${this.sourceId} claimed by ${claimingCreep.name}`);
 
-    if (this.container === undefined) {
+    if (this.visibility && !this.container) {
       this.resolveContainer();
       if (this.container === undefined) {
         this.miningPos.createConstructionSite(STRUCTURE_CONTAINER);

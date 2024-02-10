@@ -13,13 +13,13 @@ console.log("GLOBAL RESET");
 declare global {
   namespace NodeJS {
     interface Global {
-      empire: Empire | undefined;
+      empire: Empire;
       cache: CacheManager;
     }
   }
 }
 
-global.empire = undefined;
+global.empire = new Empire();
 global.cache = new CacheManager();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
@@ -27,16 +27,11 @@ global.cache = new CacheManager();
 export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(() => {
   log(TIME_FLAG,`Current game tick is ${Game.time}`);
 
-  if(!global.empire)
-  {
-    global.empire = new Empire();
-  }
+  Profile(`Empire Initialisation`, () => global.empire.Initialise());
 
-  Profile(`Empire Initialisation`, () => global.empire?.Initialise());
+  Profile(`Empire Run`, () => global.empire.Run());
 
-  Profile(`Empire Run`, () => global.empire?.Run());
-
-  Profile(`Empire Tidy`, () => global.empire?.Tidy());
+  Profile(`Empire Tidy`, () => global.empire.Tidy());
 
   Stats.exportStats();
 })));

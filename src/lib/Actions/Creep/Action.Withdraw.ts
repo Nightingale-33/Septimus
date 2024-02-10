@@ -34,7 +34,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0;
+    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0 && ResourceReservation.GetPostReservationStore(this.Target,this.ResourceType).free > 0;
   }
 
   run(creep: Creep) : boolean {
@@ -71,7 +71,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
 
   ApproxTimeLeft(creep: AbstractCreep): number {
     let expected = 1;
-    let travel = Math.max(this.pos?.getRangeTo(creep.pos) ?? 0,1) - 1;
+    let travel = Math.max(this.pos?.getMultiRoomRangeTo(creep.pos) ?? 0,1) - 1;
     return travel + expected;
   }
 

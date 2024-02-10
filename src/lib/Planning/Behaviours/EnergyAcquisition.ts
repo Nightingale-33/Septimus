@@ -48,11 +48,11 @@ export class EnergyAcquisitionBehaviour implements Behaviour {
         return new WithdrawAction(storage, RESOURCE_ENERGY, creep);
       }
       if (resources.length > 0) {
-        let closest = min(resources, (r) => r.pos.getRangeTo(creep.pos));
+        let closest = min(resources, (r) => r.pos.getMultiRoomRangeTo(creep.pos));
         return new PickupAction(closest, creep);
       }
       if (containers.length > 0) {
-        let closest = min(containers, (c) => c.pos.getRangeTo(creep.pos));
+        let closest = min(containers, (c) => c.pos.getMultiRoomRangeTo(creep.pos));
         return new WithdrawAction(closest, RESOURCE_ENERGY, creep);
       }
       return new IdleAction();
