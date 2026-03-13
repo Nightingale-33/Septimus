@@ -4,6 +4,9 @@
 # npm lock file (v5.0.0+)
 /package-lock.json
 
+#VSCOde
+/.vscode
+
 # Ignore basic folders
 /dist
 /.rpt2_cache
@@ -14,9 +17,6 @@
 
 # TypeScript definitions installed by Typings
 /typings
-
-# Screeps Config
-screeps.json
 
 # ScreepsServer data from integration tests
 /server
@@ -90,3 +90,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+.vscode/settings.json

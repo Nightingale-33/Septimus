@@ -1,0 +1,26 @@
+{
+  "main": {
+    "token": "${SCREEPS_TOKEN}",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "Septimus"
+  },
+  "sim": {
+    "token": "${SCREEPS_TOKEN}",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "sim"
+  },
+  "season": {
+    "token": "${SCREEPS_TOKEN}",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/season",
+    "branch": "main"
+  }
+}
