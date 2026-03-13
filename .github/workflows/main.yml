@@ -14,6 +14,6 @@ jobs:
       - uses: actions/setup-node@v6.3.0
         with:
           node-version: '24'
-      - uses: c-hive/gha-npm-cache@v1
+      - run: npm install
       - run: npm run push-main
       
