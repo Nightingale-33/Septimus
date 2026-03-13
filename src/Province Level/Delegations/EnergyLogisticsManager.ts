@@ -49,7 +49,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       return this.province.FocalPoint;
     } else
     {
-      throw new Error("Unable to resolve Storage Position");
+      console.error("Unable to resolve Storage Pos");
+      return this.province.spawns[0].pos;
     }
   }
 
