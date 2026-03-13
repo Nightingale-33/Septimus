@@ -62,7 +62,7 @@ export class Empire {
   }
 
   constructor() {
-    defaultsDeep(Memory,defaultsMemory);
+    RawMemory.set(defaultsDeep(RawMemory.get(),defaultsMemory));
     //Memory.Empire = defaultsDeep(Memory.Empire,defaultsEmpireMemory);
   }
 
