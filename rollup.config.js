@@ -21,7 +21,8 @@ for(let key of Object.keys(cfg))
 {
   console.log(`Checking ${key} of config for Environment variables`);
   let val = cfg[key];
-  if(val instanceof String)
+  console.log(`Val is: ${typeof(val)}`)
+  if(typeof(val) === "string")
   {
     let match = val.match(envRegex);
     if(match)
