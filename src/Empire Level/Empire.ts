@@ -62,7 +62,8 @@ export class Empire {
   }
 
   constructor() {
-    Memory.Empire = defaultsDeep(Memory.Empire,defaultsEmpireMemory);
+    defaultsDeep(Memory,defaultsMemory);
+    //Memory.Empire = defaultsDeep(Memory.Empire,defaultsEmpireMemory);
   }
 
   Initialise() {
