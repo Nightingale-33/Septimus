@@ -12,6 +12,7 @@ import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED } from "../../Constants";
+import { LOG_FLAG } from '../../utils/Logging/FlagDecs';
 
 export class EnergyLogisticsManager extends Delegation implements Behaviour {
   name: string = "EnergyLogisticsManager";
@@ -49,7 +50,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       return this.province.FocalPoint;
     } else
     {
-      console.error("Unable to resolve Storage Pos");
+      log(0,"Unable to resolve Storage Pos");
       return this.province.spawns[0].pos;
     }
   }
