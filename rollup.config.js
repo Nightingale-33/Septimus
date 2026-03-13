@@ -17,7 +17,7 @@ if (!dest) {
 console.log(`Config: ${JSON.stringify(cfg)}`);
 
 const envRegex = /\$\{([A-Z_]+)\}/;
-for(let key in Object.keys(cfg))
+for(let key of Object.keys(cfg))
 {
   console.log(`Checking ${key} of config for Environment variables`);
   let val = cfg[key];
