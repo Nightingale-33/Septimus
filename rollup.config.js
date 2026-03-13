@@ -14,6 +14,28 @@ if (!dest) {
   throw new Error("Invalid upload destination");
 }
 
+const envRegex = /\$\{([A-Z_]+)\}/;
+for(let key in Object.keys(cfg))
+{
+  console.log(`Checking ${key} of config for Environment variables`);
+  let val = cfg[key];
+  if(val instanceof String)
+  {
+    let match = val.match(envRegex);
+    if(match)
+    {
+      console.log(`Potential Environment variable found`);
+      let envKey = match[0];
+      if(process.env[envKey])
+      {
+        console.log(`Replacing (${cfg[key]}) with Environment Variable (${envKey})`);
+        cfg[key] = process.env[envKey];
+      }
+    }
+  }
+  //Depth?
+}
+
 export default {
   input: "src/main.ts",
   output: {
