@@ -3,6 +3,7 @@ import { ResourceReservation } from "../lib/Reservations/ResourceReservations";
 import { RepairReservation } from "../lib/Reservations/RepairReservations";
 import { BuildReservation } from "../lib/Reservations/BuildReservations";
 import { sum } from "lodash";
+import { log } from "../utils/Logging/Logger";
 
 declare global
 {
@@ -16,7 +17,13 @@ export class ReservationManager extends Delegation
     name: string;
     Id: string;
     ShouldExecute(): boolean {
+      try {
         return Object.values(Memory.BuildResv).length > 0 || Object.values(Memory.RsrcResv).length > 0 || Object.values(Memory.RepairResv).length > 0;
+      } catch (error) {
+        log(0,`Error with ShouldExecute: ${error}`);
+        return false;
+      }
+
     }
     Execute(): void {
         //For now, just display them
