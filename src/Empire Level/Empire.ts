@@ -63,7 +63,8 @@ export class Empire {
 
   constructor() {
     //@ts-ignore
-    global.Memory = defaultsDeep(global.Memory,defaultsMemory);
+    let mem = defaultsDeep(global.Memory,defaultsMemory);
+    RawMemory.set(JSON.stringify(mem));
     //Memory.Empire = defaultsDeep(Memory.Empire,defaultsEmpireMemory);
   }
 
