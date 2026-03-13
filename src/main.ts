@@ -34,4 +34,12 @@ export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(()
   Profile(`Empire Tidy`, () => global.empire.Tidy());
 
   Stats.exportStats();
+
+  if (Game.cpu.bucket >= PIXEL_CPU_COST && Game.cpu.generatePixel != undefined) {
+    log(3, "Generating pixel");
+    let result = Game.cpu.generatePixel();
+    if (result == OK) {
+      log(2, "Generated pixel");
+    }
+  }
 })));
