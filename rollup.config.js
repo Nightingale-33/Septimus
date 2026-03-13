@@ -29,6 +29,8 @@ for(let key of Object.keys(cfg))
     {
       console.log(`Potential Environment variable found`);
       let envKey = match[0];
+      console.log(`Match: ${JSON.stringify(match)}`);
+      console.log(`Envrionment Variable: (${envKey})`);
       if(process.env[envKey])
       {
         console.log(`Replacing (${cfg[key]}) with Environment Variable (${envKey})`);
