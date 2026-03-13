@@ -14,6 +14,8 @@ if (!dest) {
   throw new Error("Invalid upload destination");
 }
 
+console.log(`Config: ${JSON.stringify(cfg)}`);
+
 const envRegex = /\$\{([A-Z_]+)\}/;
 for(let key in Object.keys(cfg))
 {
