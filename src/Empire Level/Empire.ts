@@ -106,6 +106,26 @@ export class Empire {
     if(Game.cpu.tickLimit < 500)
     {
       log(1,"Skipping tick due to low bucket");
+
+      if(Game.cpu.tickLimit >= 20)
+      {
+        log(1,"Still executing existing plans");
+        //Do the plan part
+        Profile("Creep Plan Execution", () => {
+          for (const c in Game.creeps) {
+            let creep = Game.creeps[c];
+            if(creep.memory === undefined)
+            {
+              log(1,`Creep: ${c} has no memory and is broken. Suiciding`);
+              creep.suicide();
+            }
+            Profile(`Creep: ${c} Plan Execution`, () => {
+              creep.executePlan();
+            });
+          }
+        });
+      }
+
       return;
     }
 
