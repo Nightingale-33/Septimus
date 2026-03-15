@@ -1,3 +1,6 @@
+import { TRACE_FLAG } from "utils/Logging/FlagDecs";
+import { log } from "utils/Logging/Logger";
+
 export const x = "";
 
 declare global {
@@ -38,5 +41,6 @@ export function GetRoomPositionFromJSON(value: string) : RoomPosition
   let components = value.split(';',3);
   let x = parseInt(components[0]);
   let y = parseInt(components[1]);
+  log(TRACE_FLAG,`Json RoomPos Args: (${x},${y},${components[2]})`);
   return new RoomPosition(x,y,components[2]);
 }

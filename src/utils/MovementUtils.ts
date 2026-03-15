@@ -1,6 +1,8 @@
 import { flatten, isObject, map } from "lodash";
 import { Mission } from "../lib/Mission/Mission";
 import { Delegation } from "../lib/Delegation";
+import { TRACE_FLAG } from "./Logging/FlagDecs";
+import { log } from "./Logging/Logger";
 
 export interface MoveDefinition {
   dest: RoomPosition,
@@ -28,6 +30,7 @@ export function GetPositionFromDirection(pos: RoomPosition, dir: number): RoomPo
     case RIGHT: xDiff = 1; break;
   }
 
+  log(TRACE_FLAG,`Direction Room Pos Args: (${pos.x + xDiff}, ${pos.y + yDiff}, ${pos.roomName})`);
   return new RoomPosition(pos.x + xDiff, pos.y + yDiff, pos.roomName);
 }
 

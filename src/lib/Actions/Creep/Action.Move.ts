@@ -4,6 +4,8 @@ import { MovementRoomCallback } from "../../../utils/MovementUtils";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
+import { log } from "utils/Logging/Logger";
+import { LOG_FLAG, TRACE_FLAG } from '../../../utils/Logging/FlagDecs';
 
 export const MOVE_ID: string = "M";
 
@@ -35,6 +37,7 @@ export class MoveAction extends Action {
     let components = data.split(",", 5);
     let x = parseInt(components[0]);
     let y = parseInt(components[1]);
+    log(TRACE_FLAG,`Move Room Pos Args: (${x},${y},${components[2]})`);
     let pos = new RoomPosition(x, y, components[2]);
     let range = parseInt(components[3]);
     let shove = components[4] == "true";

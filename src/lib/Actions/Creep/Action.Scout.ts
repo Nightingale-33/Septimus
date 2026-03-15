@@ -5,6 +5,7 @@ import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { CountParts } from "../../../utils/CreepUtils";
 import { RoomIntel } from "../../../Empire Level/RoomIntel/RoomIntelValue";
+import { TRACE_FLAG } from "utils/Logging/FlagDecs";
 
 export const SCOUT_ID: string = "S";
 
@@ -23,6 +24,7 @@ export class ScoutAction extends Action {
     }
 
     this.Target = target;
+    log(TRACE_FLAG,`Scout Room Pos Args: (${25},${25},${this.Target})`);
     this.pos = new RoomPosition(25,25,this.Target);
   }
 

@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash";
 import { log } from "../../utils/Logging/Logger";
 import { SimpleStore } from "./SimpleStore";
+import { TRACE_FLAG } from "utils/Logging/FlagDecs";
 
 export class AbstractCreep {
 
@@ -14,6 +15,7 @@ export class AbstractCreep {
   constructor(creep: Creep | AbstractCreep) {
     this.name = creep.name;
     this.id = creep.id;
+    log(TRACE_FLAG,`Creep Room Pos Args: (${creep.pos.x},${creep.pos.y},${creep.pos.roomName})`);
     this.pos = new RoomPosition(creep.pos.x, creep.pos.y, creep.pos.roomName);
     this.store = new SimpleStore(creep.store);
     this.body = cloneDeep(creep.body);

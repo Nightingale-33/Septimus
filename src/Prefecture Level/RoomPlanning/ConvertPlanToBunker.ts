@@ -4,6 +4,9 @@
  */
 import { designDiamond } from "./BaseDesignDiamond";
 import { isEnterable } from "../../utils/MovementUtils";
+import { log } from "utils/Logging/Logger";
+import { TRACE_FLAG } from "utils/Logging/FlagDecs";
+import { ROOM_BOUNDARY_VALUES } from "Constants";
 
 export interface BasePlan {
   buildings: {[id:string] : {x:number,y:number}[]}
@@ -41,6 +44,12 @@ export function GetBuildsFromPlan(bp : BasePlan, anchor: RoomPosition, buildSort
   {
     for(const {x,y} of bp.buildings[structType])
     {
+      log(TRACE_FLAG,`Bunker Room Pos Args: (${x},${y},${anchor.roomName})`);
+      if(x < ROOM_BOUNDARY_VALUES.minX || y < ROOM_BOUNDARY_VALUES.minY || x > ROOM_BOUNDARY_VALUES.maxX || y > ROOM_BOUNDARY_VALUES.maxY)
+      {
+        log(1,`Tried to make invalid Room Position (${x},${y},${anchor.roomName})`);
+        continue;
+      }
       let pos = new RoomPosition(anchor.x + x,anchor.y + y,anchor.roomName);
       builds.push([structType as BuildableStructureConstant, pos]);
     }
