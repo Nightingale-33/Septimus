@@ -44,10 +44,12 @@ export function GetBuildsFromPlan(bp : BasePlan, anchor: RoomPosition, buildSort
   {
     for(const {x,y} of bp.buildings[structType])
     {
-      log(TRACE_FLAG,`Bunker Room Pos Args: (${x},${y},${anchor.roomName})`);
-      if(x < ROOM_BOUNDARY_VALUES.minX || y < ROOM_BOUNDARY_VALUES.minY || x > ROOM_BOUNDARY_VALUES.maxX || y > ROOM_BOUNDARY_VALUES.maxY)
+      let posX = (anchor.x + x);
+      let posY = (anchor.y + y);
+      log(TRACE_FLAG,`Bunker Room Pos Args: (${posX},${posY},${anchor.roomName})`);
+      if(posX < ROOM_BOUNDARY_VALUES.minX || posY < ROOM_BOUNDARY_VALUES.minY || posX > ROOM_BOUNDARY_VALUES.maxX || posY > ROOM_BOUNDARY_VALUES.maxY)
       {
-        log(1,`Tried to make invalid Room Position (${x},${y},${anchor.roomName})`);
+        log(1,`Tried to make invalid Room Position (${posX},${posY},${anchor.roomName})`);
         continue;
       }
       let pos = new RoomPosition(anchor.x + x,anchor.y + y,anchor.roomName);

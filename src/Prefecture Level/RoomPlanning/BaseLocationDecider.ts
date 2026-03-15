@@ -6,6 +6,8 @@ import { designDiamond } from "./BaseDesignDiamond";
 import { isEnterable } from "../../utils/MovementUtils";
 import { Province } from "../../Province Level/Province";
 import { GetBuildsFromPlan } from "./ConvertPlanToBunker";
+import { log } from "utils/Logging/Logger";
+import { TRACE_FLAG } from "utils/Logging/FlagDecs";
 
 declare global {
   interface RoomMemory
@@ -37,9 +39,16 @@ export class BaseLocationDecider extends Delegation {
 
   distanceTrans : DistanceTransform;
 
+  invalidBaseTypes : string[] = [];
+
   Execute(): void {
     if(!this.prefecture.memory.baseAnchor)
     {
+      if(this.invalidBaseTypes.includes("Diamond"))
+      {
+        log(TRACE_FLAG,"Diamond base not possible");
+        return;
+      }
       //We need to pick one
       if(this.prefecture.distanceTransformer.data)
       {
@@ -92,6 +101,12 @@ export class BaseLocationDecider extends Delegation {
             }
           }
           count++;
+        }
+
+        if(!Game.flags[`${this.province.name}_Diamond_Anchor`])
+        {
+          log(1, "Unable to find a suitable spot for a Diamond Base. Design a different base.");
+          this.invalidBaseTypes.push("Diamond");
         }
       } else
       {
