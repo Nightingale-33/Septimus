@@ -185,7 +185,7 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
       log(1, `Mining Pos at: ${this.Id} claimed by : ${this.miningPosClaimed} by conquest`);
     }
     //else they are equally big so no fighting
-    log(1, `Mining Site: ${this.sourceId} claimed by ${claimingCreep.name}`);
+    log(3, `Mining Site: ${this.sourceId} claimed by ${claimingCreep.name}`);
 
     if (this.visibility && !this.container) {
       this.resolveContainer();
