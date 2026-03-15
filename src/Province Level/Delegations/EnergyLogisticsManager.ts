@@ -13,6 +13,7 @@ import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED } from "../../Constants";
 import { LOG_FLAG } from '../../utils/Logging/FlagDecs';
+import { WORKER } from "lib/Roles/Role.Worker";
 
 export class EnergyLogisticsManager extends Delegation implements Behaviour {
   name: string = "EnergyLogisticsManager";
@@ -191,7 +192,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     let spawnPred = (province: Province) => {
       return this.lastCreepsOwned === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75;
     };
-    let creeps = this.province.RequestParts([HAULER], CARRY, carryParts, this.Id, carryParts * 10, { deRegisterExcess: false, spawnPredicate:spawnPred, maxCreeps: carryParts/2 });
+    let creeps = this.province.RequestParts([HAULER,WORKER], CARRY, carryParts, this.Id, carryParts * 10, { deRegisterExcess: false, spawnPredicate:spawnPred, maxCreeps: carryParts/2 });
     this.lastCreepsOwned = creeps.length;
 
     //Ask the haulers to do their job
