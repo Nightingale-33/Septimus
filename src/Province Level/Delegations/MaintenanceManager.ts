@@ -60,7 +60,7 @@ export class RepairingManager extends Delegation implements Behaviour {
   }
 
   get repairables(): Structure[] {
-    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold(s) : s.hits < s.hitsMax * 0.75)), 0, "Repair" + this.province.name + "Structures");
+    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold(s) : s.hits < RAMPART_HITS_MAX[this.province.Capital.controller?.level ?? 2] * 1.1)), 0, "Repair" + this.province.name + "Structures");
   }
 
   ShouldExecute(): boolean {
