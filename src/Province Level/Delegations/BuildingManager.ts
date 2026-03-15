@@ -1,6 +1,6 @@
 import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
-import { flatten, sortByAll } from "lodash";
+import { flatten, sortByAll, sum } from 'lodash';
 import { WORKER } from "../../lib/Roles/Role.Worker";
 import { BuildReservation } from "../../lib/Reservations/BuildReservations";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
@@ -63,7 +63,7 @@ export class BuildingManager extends Delegation implements Behaviour {
   Execute(): void {
     //Determine how many builders (Workers)
     let topPrio = this.ConstructionSites[0];
-    let carryParts = Math.ceil((topPrio.progressTotal - topPrio.progress) / (CARRY_CAPACITY));
+    let carryParts = Math.max(Math.ceil((topPrio.progressTotal - topPrio.progress) / (CARRY_CAPACITY)),_.sum(this.ConstructionSites,(cs) => (cs.progressTotal - cs.progress) / (CARRY_CAPACITY)));
     log(5,`${this.Id} Requesting: ${carryParts} Carry Parts for ${topPrio.pos.toJSON()}`);
     let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {
       stealCreeps: true,
