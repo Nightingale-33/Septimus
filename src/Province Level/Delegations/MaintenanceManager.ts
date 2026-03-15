@@ -41,6 +41,7 @@ export class RepairingManager extends Delegation implements Behaviour {
       //Repair
       let repairableNow = this.repairables.filter((cs) => RepairReservation.GetPostReservationHits(cs) < (cs instanceof StructureRampart ? this.rampartHpThreshold(cs) : cs.hitsMax));
       if (repairableNow.length === 0) {
+        log(1,`There are no repairables for the Repairing creep`);
         return null;
       }
       let bestSite = min(repairableNow, (cs) => RepairReservation.GetPostReservationHits(cs) / cs.hitsMax);
@@ -71,6 +72,8 @@ export class RepairingManager extends Delegation implements Behaviour {
   Execute(): void {
     //Determine how many repairers (Workers)
     let creeps = this.province.RequestParts([WORKER], WORK, this.repairables.length, this.Id, this.repairables.length * 2, { stealCreeps: true });
+
+    log(2,`Got ${creeps.length} creeps as there are ${this.repairables.length} repairables`);
 
     for (const repairable of this.repairables) {
       repairable.room.visual.circle(repairable.pos, { fill: "#550055", radius: 0.1 });
