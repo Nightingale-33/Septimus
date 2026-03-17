@@ -25,22 +25,22 @@ export class BaseBuild extends ProvinceMission implements CostMatrixAdjuster {
 
   adjustCostMatrix(roomName: string, cm: CostMatrix): CostMatrix {
     return cm;
-    if(this.pos.roomName === roomName)
-      {
-        log(10,`Adjusting Cost Matrix as Base Builder for ${roomName}`);
-        for(const [buildType, pos] of this.buildQueue)
-        {
-          if(buildType === STRUCTURE_ROAD)
-          {
-            cm.set(pos.x,pos.y,1);
-          } else if(buildType !== STRUCTURE_RAMPART)
-          {
-            cm.set(pos.x,pos.y,255);
-          }
-        }
-        return cm;
-      }
-      return cm;
+    // if(this.pos.roomName === roomName)
+    //   {
+    //     log(10,`Adjusting Cost Matrix as Base Builder for ${roomName}`);
+    //     for(const [buildType, pos] of this.buildQueue)
+    //     {
+    //       if(buildType === STRUCTURE_ROAD)
+    //       {
+    //         cm.set(pos.x,pos.y,1);
+    //       } else if(buildType !== STRUCTURE_RAMPART)
+    //       {
+    //         cm.set(pos.x,pos.y,255);
+    //       }
+    //     }
+    //     return cm;
+    //   }
+    //   return cm;
     }
 
   priority: number;
