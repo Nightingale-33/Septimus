@@ -24,7 +24,8 @@ export class BaseBuild extends ProvinceMission implements CostMatrixAdjuster {
   }
 
   adjustCostMatrix(roomName: string, cm: CostMatrix): CostMatrix {
-      if(this.pos.roomName === roomName)
+    return cm;
+    if(this.pos.roomName === roomName)
       {
         log(10,`Adjusting Cost Matrix as Base Builder for ${roomName}`);
         for(const [buildType, pos] of this.buildQueue)
