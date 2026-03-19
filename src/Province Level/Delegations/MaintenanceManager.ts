@@ -39,7 +39,7 @@ export class RepairingManager extends Delegation implements Behaviour {
       return this.EnergyAcquirer.PlanNext(creep);
     } else {
       //Repair
-      let repairableNow = this.repairables.filter((cs) => RepairReservation.GetPostReservationHits(cs) < (cs instanceof StructureRampart ? this.rampartHpThreshold(cs) : cs.hitsMax));
+      let repairableNow = this.repairables.filter((cs) => RepairReservation.GetPostReservationHits(cs) < (cs instanceof StructureRampart ? this.rampartHpThreshold() : cs.hitsMax));
       if (repairableNow.length === 0) {
         log(1,`There are no repairables for the Repairing creep`);
         return null;
@@ -55,13 +55,13 @@ export class RepairingManager extends Delegation implements Behaviour {
     return this.province.name + "_" + this.name;
   }
 
-  rampartHpThreshold(s: StructureRampart): number {
+  rampartHpThreshold(): number {
     let controllerLevel = this.province.Capital.controller?.level ?? 0;
     return (10_000 * (controllerLevel));
   }
 
   get repairables(): Structure[] {
-    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold(s) : s.hits < Math.min(s.hitsMax,RAMPART_HITS_MAX[this.province.Capital.controller?.level ?? 2] * 1.1))), 0, "Repair" + this.province.name + "Structures");
+    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold() : s.hits < Math.min(s.hitsMax,this.rampartHpThreshold() * 1.1))), 0, "Repair" + this.province.name + "Structures");
   }
 
   ShouldExecute(): boolean {
