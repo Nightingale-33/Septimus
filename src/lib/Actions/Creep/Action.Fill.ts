@@ -47,7 +47,7 @@ export class FillAction extends ReservingAction<ResourceReservation> {
     if (this.pos) {
       let range = creep.pos.getRangeTo(this.pos);
       let avoidCreeps = false;// creep.pos.getRangeTo(this.pos) < 5;
-      moveTo(creep, { pos: this.pos, range: 1 }, { priority: 500 / range, avoidCreeps: avoidCreeps, visualizePathStyle:{stroke:"#2626FF"}, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 },{avoidCreeps:true,priority:1000*range});
+      moveTo(creep, { pos: this.pos, range: 1 }, { priority:500 + 1000 / range, avoidCreeps: avoidCreeps, visualizePathStyle:{stroke:"#2626FF"}, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2 },{avoidCreeps:true,priority:1000*range});
     }
     return (target ? creep.transfer(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
