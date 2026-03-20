@@ -200,6 +200,7 @@ export class Province {
   }
 
   UnassignCreep(creep: Creep) {
+    log(3,`Unassigning Creep: ${creep.name} from ${creep.memory.assignmentId}`);
     delete creep.memory.assignmentId;
     delete creep.memory.assignmentPriority;
     creep.memory.plan.clear(creep);

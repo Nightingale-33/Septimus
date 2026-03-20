@@ -59,7 +59,7 @@ Creep.prototype.executePlan = function() {
     } else
     {
       this.say("🛌");
-      log(1,`Creep: ${this.name} is without a plan. Unassigning`);
+      log(1,`Creep: ${this.name} is without a plan. Unassigning from: ${this.memory.assignmentId}`);
       delete this.memory.assignmentId;
       delete this.memory.assignmentPriority;
     }
