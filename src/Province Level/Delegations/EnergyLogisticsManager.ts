@@ -111,7 +111,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
 
     if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
       let fillTarget: AnyStoreStructure | undefined = undefined;
-      let sortedSinks = sortBy(sortBy(this.sinks, (s) => s.pos.getMultiRoomRangeTo(creep.pos)),(s) => this.sinkTypeOrder.indexOf(s.structureType));
+      let preferredSinkOrder = this.province.Capital.Defense.ShouldExecute() ? this.defenseSinkOrder : this.sinkTypeOrder;
+      let sortedSinks = sortBy(sortBy(this.sinks, (s) => s.pos.getMultiRoomRangeTo(creep.pos)),(s) => preferredSinkOrder.indexOf(s.structureType));
       for (const sink of sortedSinks) {
         if (ResourceReservation.GetPostReservationStore(sink, RESOURCE_ENERGY).free > 0) {
           fillTarget = sink;
@@ -154,6 +155,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     return true;
   }
 
+  defenseSinkOrder : StructureConstant[] = [STRUCTURE_TOWER,STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_STORAGE];
   sinkTypeOrder: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE];
 
   lastCreepsOwned:number = 0;
