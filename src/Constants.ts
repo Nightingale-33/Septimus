@@ -1,4 +1,4 @@
-export const CHATTY: boolean = true;
+export const CHATTY: boolean = false;
 
 export const ROOM_BOUNDARY_VALUES = {minX: 0, minY: 0, maxX:49, maxY:49}
 
