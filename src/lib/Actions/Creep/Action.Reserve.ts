@@ -45,7 +45,7 @@ export class ReserveAction extends Action {
 
   run(creep: Creep): boolean {
     let target = this.Target;
-    if(this.pos)
+    if(this.pos && creep.pos.getRangeTo(this.pos) > 1)
     {
       moveTo(creep,{pos:this.pos,range:1},{priority:1000,avoidCreeps:false, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2});
     }
