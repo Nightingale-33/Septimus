@@ -47,7 +47,6 @@ export class ScoutAction extends Action {
       priority: 1,
       visualizePathStyle: {},
       avoidCreeps: avoidCreeps,
-      roomCallback: MovementRoomCallback,
       swampCost: 5, plainCost:2
     }, { visualizePathStyle: { stroke: "#FF0000" }, avoidCreeps: true });
 
