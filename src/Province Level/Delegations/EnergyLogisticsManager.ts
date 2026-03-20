@@ -70,7 +70,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
         }
       } else if(afterFirst && !afterFirst.pos.isNearTo(creep.pos) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
       {
-        let nearbyOpportunity = this.sources.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree);
+        let nearbyOpportunity = this.sources.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY,true).used >= creepFree);
         if(nearbyOpportunity.length > 0)
         {
           let yoink = nearbyOpportunity[0];
@@ -131,7 +131,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       let sourceTarget: AnyStoreStructure | Resource | undefined = undefined;
       let sortedSources = sortBy(this.sources, (s) => s.pos.getMultiRoomRangeTo(creep.pos));
       for (const source of sortedSources) {
-        if (ResourceReservation.GetPostReservationStore(source, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
+        if (ResourceReservation.GetPostReservationStore(source, RESOURCE_ENERGY,true).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
           sourceTarget = source;
           break;
         }
