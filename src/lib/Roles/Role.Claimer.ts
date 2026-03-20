@@ -5,7 +5,7 @@ export const CLAIMER = "Claimer";
 
 export function SpawnClaimer(spawn: StructureSpawn, province: Province) : string | null
 {
-  const baseBody = [CLAIM, MOVE];
+  const baseBody = [CLAIM,CLAIM, MOVE];
   const bodyAddon = [CLAIM];
 
   let largestBody = GetLargestBody(spawn, baseBody, bodyAddon, 6,true);
