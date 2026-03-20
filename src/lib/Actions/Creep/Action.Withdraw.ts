@@ -39,11 +39,22 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
 
   run(creep: Creep) : boolean {
     let target = this.Target;
+    if(!target)
+    {
+      return false;
+    }
     if(this.pos)
     {
       let range = creep.pos.getRangeTo(this.pos);
       let avoidCreeps = false; // < 5;
-      moveTo(creep,{pos:this.pos,range:1},{priority:100 + 1000/range,avoidCreeps:avoidCreeps, visualizePathStyle:{stroke:"#00009F"}, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2},{avoidCreeps:true,priority:1000*range});
+
+      let targetRange = 1;
+      if(target.store?.getUsedCapacity(this.ResourceType) ?? 0 < creep.store.getFreeCapacity(this.ResourceType))
+      {
+        targetRange = 5;
+      }
+
+      moveTo(creep,{pos:this.pos,range:targetRange},{priority:100 + 1000/range,avoidCreeps:avoidCreeps, visualizePathStyle:{stroke:"#00009F"}, roomCallback:MovementRoomCallback, swampCost:5, plainCost:2},{avoidCreeps:true,priority:1000*range});
     }
     return (target ? creep.withdraw(target, this.ResourceType) : ERR_INVALID_TARGET) == OK;
   };
