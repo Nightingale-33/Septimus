@@ -123,6 +123,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       if (fillTarget !== undefined) {
         return new FillAction(fillTarget, RESOURCE_ENERGY, creep);
       }
+
+      log(1,"Could not find anywhere to deposit energy");
     }
 
     if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
@@ -148,6 +150,7 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       }
     }
 
+    log(1,"Did not find anything to do for the Energy Logistics");
     return null;
   }
 
