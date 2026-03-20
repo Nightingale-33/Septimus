@@ -19,7 +19,7 @@ export class EnergyAcquisitionBehaviour implements Behaviour {
     let creepFree = creep.store.getFreeCapacity(RESOURCE_ENERGY);
     if(creepFree > 0 && afterFirst && !(afterFirst.pos.isNearTo(creep.pos)) && afterFirst.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
     {
-      let nearbyOpportunity = this.province.Logistics.sources?.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY).used >= creepFree) ?? [];
+      let nearbyOpportunity = this.province.Logistics.sources?.filter((s) => s.pos.isNearTo(creep.pos) && ResourceReservation.GetPostReservationStore(s,RESOURCE_ENERGY,true).used >= creepFree) ?? [];
       if(nearbyOpportunity.length > 0)
       {
         let yoink = nearbyOpportunity[0];
@@ -44,7 +44,7 @@ export class EnergyAcquisitionBehaviour implements Behaviour {
       let containers = creep.room?.find(FIND_STRUCTURES, {
         filter: (s): s is StructureContainer => s instanceof StructureContainer && ResourceReservation.GetPostReservationStore(s, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)
       }) ?? [];
-      if (storage && ResourceReservation.GetPostReservationStore(storage, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
+      if (storage && ResourceReservation.GetPostReservationStore(storage, RESOURCE_ENERGY,true).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
         return new WithdrawAction(storage, RESOURCE_ENERGY, creep);
       }
       if (resources.length > 0) {

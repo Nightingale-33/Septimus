@@ -53,7 +53,7 @@ export class ResourceReservation extends Reservation<Creep | AbstractCreep, _Has
 
   static GetPostReservationStore(target: _HasId & ({ store: StoreDefinition } | {
     amount: number
-  }), resourceType: ResourceConstant)
+  }), resourceType: ResourceConstant, takingOnly : boolean = false)
     : { free: number, used: number } {
     let storeContents: { used: number; free: number };
     if (this.HasStore(target)) {
@@ -70,7 +70,7 @@ export class ResourceReservation extends Reservation<Creep | AbstractCreep, _Has
     }
 
     for (const reservation of Memory.RsrcResv[target.id]) {
-      if (reservation.resourceType == resourceType) {
+      if (reservation.resourceType == resourceType && !(takingOnly && reservation.amount > 0)) {
         storeContents.free -= reservation.amount;
         storeContents.used += reservation.amount;
       }
