@@ -43,10 +43,11 @@ export class ScoutAction extends Action {
 
   run(creep: Creep): boolean {
     let avoidCreeps = false;
-    let result = moveTo(creep, this.pos, {
+    let result = moveTo(creep, {pos:this.pos,range:30}, {
       priority: 1,
       visualizePathStyle: {},
       avoidCreeps: avoidCreeps,
+
       swampCost: 5, plainCost:2
     }, { visualizePathStyle: { stroke: "#FF0000" }, avoidCreeps: true });
 
