@@ -42,6 +42,7 @@ export class ScoutAction extends Action {
   }
 
   run(creep: Creep): boolean {
+    creep.notifyWhenAttacked(false);
     let avoidCreeps = false;
     let result = moveTo(creep, {pos:this.pos,range:30}, {
       priority: 1,
