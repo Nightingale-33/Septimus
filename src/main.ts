@@ -24,7 +24,7 @@ global.cache = new CacheManager();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(() => {
+export const loop = Profile("Main Loop",() => MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(() => {
   log(TIME_FLAG,`Current game tick is ${Game.time}`);
 
   Profile(`Empire Initialisation`, () => global.empire.Initialise());
@@ -42,4 +42,4 @@ export const loop = MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(()
       log(2, "Generated pixel");
     }
   }
-})));
+}))));

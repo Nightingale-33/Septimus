@@ -158,7 +158,7 @@ export class Province {
 
   Run() {
     for (const prefecture of this.Prefectures) {
-      Profile(prefecture.RoomName, () => {
+      Profile(`Prefecture ${prefecture.RoomName}`, () => {
         if(!prefecture.Initialised)
         {
           prefecture.Initialise();
@@ -168,7 +168,7 @@ export class Province {
     }
 
     for (const delegation of this.Delegations) {
-      Profile(delegation.name, () => {
+      Profile(`Delegation: ${delegation.name}`, () => {
         if (delegation.ShouldExecute()) {
           delegation.Execute();
         }
@@ -177,7 +177,7 @@ export class Province {
 
     for (const mFlag in this.ActiveMissions) {
       let mission = this.ActiveMissions[mFlag];
-      Profile(mFlag, () => {
+      Profile(`Mission Flag: ${mFlag}`, () => {
         mission.run();
       });
     }

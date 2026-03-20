@@ -185,7 +185,7 @@ export class Empire {
     }
 
     for (const delegation of this.Delegations) {
-      Profile(delegation.name, () => {
+      Profile(`Delegation: ${delegation.name}`, () => {
         if (delegation.ShouldExecute()) {
           delegation.Execute();
         }
