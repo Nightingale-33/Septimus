@@ -3,6 +3,7 @@ import { ResourceReservation } from "../../Reservations/ResourceReservations";
 import { moveTo } from "screeps-cartographer";
 import { AbstractCreep } from "../../Planning/AbstractCreep";
 import { MovementRoomCallback } from "../../../utils/MovementUtils";
+import { log } from "utils/Logging/Logger";
 
 export const WITHDRAW_ID = "W";
 
@@ -51,6 +52,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
       let targetRange = 1;
       if(target.store?.getUsedCapacity(this.ResourceType) ?? 0 < creep.store.getFreeCapacity(this.ResourceType))
       {
+        log(1,`Creep: ${creep.name} is waiting near the withdraw target due to: ${target.store?.getUsedCapacity(this.ResourceType) ?? 0} < ${creep.store.getFreeCapacity(this.ResourceType)}`);
         targetRange = 5;
       }
 
