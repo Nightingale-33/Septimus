@@ -156,7 +156,7 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
     let spawnPred = (province: Province) => {
       return this.lastCreepsHad === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.75;
     };
-    let creeps = this.province.RequestParts([HARVESTER], WORK, SOURCE_HARVEST_PARTS + 1, this.memory.Id, this.lastCreepsHad === 0 ? this.priority : this.priority / Math.pow(100, this.lastCreepsHad), {
+    let creeps = this.province.RequestParts([HARVESTER], WORK, SOURCE_HARVEST_PARTS + 1, this.memory.Id, this.lastCreepsHad === 0 ? this.priority : this.priority / Math.pow(1000, this.lastCreepsHad), {
       maxCreeps: practicalMax,
       deRegisterExcess: false,
       stealCreeps: false,
