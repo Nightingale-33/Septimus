@@ -167,10 +167,13 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       .filter((c): c is StructureContainer => c instanceof StructureContainer)
       .sort((a, b) => ResourceReservation.GetPostReservationStore(b, RESOURCE_ENERGY).used - ResourceReservation.GetPostReservationStore(a, RESOURCE_ENERGY).used);
 
+    let loosePiles = this.province.Capital.room.find(FIND_DROPPED_RESOURCES)
+      .filter((s) => s.resourceType === RESOURCE_ENERGY && s.amount >= 1000);
+
     carryParts += sum(mineContainers.map((m) => SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED * m.pos.getMultiRoomRangeTo(this.storagePos)));
 
     //Sources will likely later include more sources
-    this.sources = [...mineContainers];
+    this.sources = [...mineContainers, ...loosePiles];
 
     this.sinks = this.province.Capital.room.find(FIND_STRUCTURES)
       .filter((s): s is AnyStoreStructure => this.sinkTypeOrder.includes(s.structureType))
