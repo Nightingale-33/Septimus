@@ -200,7 +200,13 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
       wantedRoles.push(WORKER);
     }
 
-    let creeps = this.province.RequestParts(wantedRoles, CARRY, carryParts, this.Id, carryParts * 10, { deRegisterExcess: false, spawnPredicate:spawnPred, maxCreeps: carryParts/2 });
+    let priority = carryParts * 10;
+    if(this.province.Capital.towers.length > 0 || this.province.storage)
+    {
+      priority = carryParts * 1000;
+    }
+
+    let creeps = this.province.RequestParts(wantedRoles, CARRY, carryParts, this.Id, priority, { deRegisterExcess: false, spawnPredicate:spawnPred, maxCreeps: carryParts/2 });
     this.lastCreepsOwned = creeps.length;
 
     //Ask the haulers to do their job
