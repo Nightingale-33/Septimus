@@ -37,7 +37,7 @@ export class DefendPrefectureMission extends ProvinceMission
     this.combatPlanner = new Planner(this.combatBehaviour,3);
   }
     run(): void {
-        if(!this.prefecture.visibility)
+        if(!this.prefecture?.visibility)
         {
           //Get visibility
           let check = this.province.RequestCreeps(LEGIONNAIRE,1,this.Id,this.priority, {deRegisterExcess: false, stealCreeps: true});
