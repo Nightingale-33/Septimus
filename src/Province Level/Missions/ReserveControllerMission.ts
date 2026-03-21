@@ -26,6 +26,11 @@ export class ReserveControllerMission extends ProvinceMission {
       this.province.Prefectures.push(this.prefecture = new Prefecture(this.province,this.flag.pos.roomName));
     }
 
+    if((this.prefecture?.room?.controller?.reservation?.ticksToEnd ?? 0) >= 3000)
+    {
+      return;
+    }
+
     let claimer = this.province.RequestCreeps(CLAIMER, 1, this.Id, this.priority);
 
     for (const c of claimer) {
