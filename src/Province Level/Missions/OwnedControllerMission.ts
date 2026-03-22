@@ -77,9 +77,15 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
     }
 
     let levelAmount = controller.level === 8 ? 1 : controller.level;
+
+    if((this.province.storage?.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0) >= (controller.progressTotal - controller.progress) && controller.level < 8)
+    {
+      levelAmount *= 10;
+    }
+
     let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
 
-    let requestPriority = controller.ticksToDowngrade < 2500 ? 500 : this.priority;
+    let requestPriority = controller.ticksToDowngrade < 2500 ? 500000 : this.priority;
 
     creeps = this.province.RequestCreeps(WORKER, Infinity, this.memory.Id, requestPriority, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
 
