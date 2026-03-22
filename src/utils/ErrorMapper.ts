@@ -90,8 +90,9 @@ export class ErrorMapper {
           throw e;
         }
         ErrorMapper.errorCount++;
-        if(ErrorMapper.errorCount >= 5 && Game.cpu.halt)
+        if(ErrorMapper.errorCount >= 50 && Game.cpu.halt)
         {
+          Game.notify("CPU halt due to 50+ errors");
           console.log("Resetting due to error");
           Game.cpu.halt();
         }
