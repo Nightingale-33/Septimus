@@ -78,7 +78,7 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
 
     let levelAmount = controller.level === 8 ? 1 : controller.level;
 
-    if((this.province.storage?.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0) >= (controller.progressTotal - controller.progress) && controller.level < 8)
+    if((this.province.storage?.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0) >= Math.min(300_000,(controller.progressTotal - controller.progress)) && controller.level < 8)
     {
       levelAmount *= 10;
     }
