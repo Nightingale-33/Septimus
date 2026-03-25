@@ -148,7 +148,7 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
 
   run(): void {
     //Check for validity
-    if(this.visibility && this.flag.room?.controller?.reservation?.username !== (this.province.Capital.controller?.owner?.username))
+    if(this.visibility && (this.flag.room?.controller?.reservation?.username) !== undefined && this.flag.room?.controller?.reservation?.username !== (this.province.Capital.controller?.owner?.username))
     {
       Game.notify(`The mining mission in ${this.flag.room?.name} has been abandoned due to something else reserving`);
       log(1,`Abandoning mining mission for flag: ${this.flag.name}`);

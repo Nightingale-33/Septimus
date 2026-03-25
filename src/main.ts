@@ -1,4 +1,3 @@
-import { ErrorMapper } from "utils/ErrorMapper";
 import { TIME_FLAG } from "./utils/Logging/FlagDecs";
 import { log } from "./utils/Logging/Logger";
 import { Empire } from "./Empire Level/Empire";
@@ -24,7 +23,7 @@ global.cache = new CacheManager();
 
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = Profile("Main Loop",() => MemHackWrapLoop(ErrorMapper.wrapLoop(CartographerWrapLoop(() => {
+export const loop = Profile("Main Loop",() => MemHackWrapLoop(CartographerWrapLoop(() => {
   log(TIME_FLAG,`Current game tick is ${Game.time}`);
 
   Profile(`Empire Initialisation`, () => global.empire.Initialise());
@@ -42,4 +41,4 @@ export const loop = Profile("Main Loop",() => MemHackWrapLoop(ErrorMapper.wrapLo
       log(2, "Generated pixel");
     }
   }
-}))));
+})));
