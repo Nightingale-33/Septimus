@@ -2,6 +2,7 @@ import { Delegation } from "../../lib/Delegation";
 import { Province } from "../Province";
 import { filter } from "lodash";
 import { MiningMission } from "../Missions/MiningMission";
+import { log } from "utils/Logging/Logger";
 
 export class MiningSiteAssigner extends Delegation
 {
@@ -24,11 +25,15 @@ export class MiningSiteAssigner extends Delegation
     Execute(): void {
       let miningSites = filter(this.province.ActiveMissions,(m) : m is MiningMission => m instanceof MiningMission) as MiningMission[];
       for (const source of this.province.sources) {
-        if(!miningSites.find((m) => m.sourceId === source.id) && (source.room.controller?.reservation?.username !== undefined && source.room.controller.reservation.username !== this.province.Capital.controller?.owner?.username) )
+        if(!miningSites.find((m) => m.sourceId === source.id))
         {
-          let flagName = `${this.province.name}_${source.id}`;
-          let colour = MiningMission.GetFlagColours();
-          source.pos.createFlag(flagName,colour.primary,colour.secondary);
+          if((source.room.controller?.reservation?.username === undefined || source.room.controller.reservation.username === this.province.Capital.controller?.owner?.username))
+          {
+            log(1,`Creating a mining mission in the room ${source.room.name} as it is reserved by: ${source.room.controller?.reservation?.username}`);
+            let flagName = `${this.province.name}_${source.id}`;
+            let colour = MiningMission.GetFlagColours();
+            source.pos.createFlag(flagName,colour.primary,colour.secondary);
+          }
         }
       }
     }

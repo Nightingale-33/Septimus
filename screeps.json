@@ -5,7 +5,7 @@
     "hostname": "screeps.com",
     "port": 443,
     "path": "/",
-    "branch": "Septimus"
+    "branch": "auto"
   },
   "sim": {
     "token": "${SCREEPS_TOKEN}",
