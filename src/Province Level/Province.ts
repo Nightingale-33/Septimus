@@ -207,7 +207,7 @@ export class Province {
   }
 
   RequestCreeps(role: Role, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
-    let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
+    let options: CreepRequestOptions = defaultsDeep(opts, defaultCreepRequestOptions);
 
     if(requestId.length === 0)
     {
@@ -288,7 +288,7 @@ export class Province {
   }
 
   RequestParts(usableRoles: Role[], part: BodyPartConstant, amount: number, requestId: string, requestPriority: number, opts: CreepRequestOptions = defaultCreepRequestOptions): Creep[] {
-    let options: CreepRequestOptions = _.defaultsDeep(opts, defaultCreepRequestOptions);
+    let options: CreepRequestOptions = defaultsDeep(opts, defaultCreepRequestOptions);
 
     if(requestId.length === 0)
     {

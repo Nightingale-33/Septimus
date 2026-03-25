@@ -63,7 +63,7 @@ export class BuildingManager extends Delegation implements Behaviour {
   Execute(): void {
     //Determine how many builders (Workers)
     let topPrio = this.ConstructionSites[0];
-    let carryParts = Math.max(Math.ceil((topPrio.progressTotal - topPrio.progress) / (CARRY_CAPACITY)),_.sum(this.ConstructionSites,(cs) => (cs.progressTotal - cs.progress) / (CARRY_CAPACITY)));
+    let carryParts = Math.max(Math.ceil((topPrio.progressTotal - topPrio.progress) / (CARRY_CAPACITY)),sum(this.ConstructionSites,(cs) => (cs.progressTotal - cs.progress) / (CARRY_CAPACITY)));
     log(5,`${this.Id} Requesting: ${carryParts} Carry Parts for ${topPrio.pos.toJSON()}`);
     let creeps = this.province.RequestParts([WORKER], CARRY, carryParts, this.Id, this.ConstructionSites.length * 5, {
       stealCreeps: true,

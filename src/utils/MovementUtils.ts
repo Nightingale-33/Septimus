@@ -1,4 +1,4 @@
-import { flatten, isObject, map } from "lodash";
+import { every, flatten, isObject, map, transform } from "lodash";
 import { Mission } from "../lib/Mission/Mission";
 import { Delegation } from "../lib/Delegation";
 import { TRACE_FLAG } from "./Logging/FlagDecs";
@@ -34,14 +34,14 @@ export function GetPositionFromDirection(pos: RoomPosition, dir: number): RoomPo
   return new RoomPosition(pos.x + xDiff, pos.y + yDiff, pos.roomName);
 }
 
-const isObstacle = _.transform(
+const isObstacle = transform(
   OBSTACLE_OBJECT_TYPES,
   (o, type) => { o[type] = true; },
   {}
 );
 
 export function isEnterable(pos : RoomPosition) {
-  return _.every(pos.look(), item =>
+  return every(pos.look(), item =>
     item.type === 'terrain' ?
       item.terrain !== 'wall' :
       !isObstacle[item.structure?.structureType ?? ""]
