@@ -14,31 +14,34 @@ if (!dest) {
   throw new Error("Invalid upload destination");
 }
 
-console.log(`Config: ${JSON.stringify(cfg)}`);
-
-const envRegex = /\$\{([A-Z_]+)\}/;
-for(let key of Object.keys(cfg))
+if(cfg)
 {
-  console.log(`Checking ${key} of config for Environment variables`);
-  let val = cfg[key];
-  console.log(`Val is: ${typeof(val)}`)
-  if(typeof(val) === "string")
+  console.log(`Config: ${JSON.stringify(cfg)}`);
+
+  const envRegex = /\$\{([A-Z_]+)\}/;
+  for(let key of Object.keys(cfg))
   {
-    let match = val.match(envRegex);
-    if(match)
+    console.log(`Checking ${key} of config for Environment variables`);
+    let val = cfg[key];
+    console.log(`Val is: ${typeof(val)}`)
+    if(typeof(val) === "string")
     {
-      console.log(`Potential Environment variable found`);
-      let envKey = match[1];
-      console.log(`Match: ${JSON.stringify(match)}`);
-      console.log(`Envrionment Variable: (${envKey})`);
-      if(process.env[envKey])
+      let match = val.match(envRegex);
+      if(match)
       {
-        console.log(`Replacing (${cfg[key]}) with Environment Variable (${envKey})`);
-        cfg[key] = process.env[envKey];
+        console.log(`Potential Environment variable found`);
+        let envKey = match[1];
+        console.log(`Match: ${JSON.stringify(match)}`);
+        console.log(`Envrionment Variable: (${envKey})`);
+        if(process.env[envKey])
+        {
+          console.log(`Replacing (${cfg[key]}) with Environment Variable (${envKey})`);
+          cfg[key] = process.env[envKey];
+        }
       }
     }
+    //Depth?
   }
-  //Depth?
 }
 
 export default {
