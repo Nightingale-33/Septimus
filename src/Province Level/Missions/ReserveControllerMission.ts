@@ -5,6 +5,9 @@ import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { ReserveAction } from "../../lib/Actions/Creep/Action.Reserve";
 import { Prefecture } from "../../Prefecture Level/Prefecture";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
+import { LEGIONNAIRE } from "lib/Roles/Combat/Role.Legionnaire";
+import { SimpleAttack } from "lib/Planning/Behaviours/Combat/SimpleAttack";
+import { MeleeAction } from "lib/Actions/Creep/Combat/Action.MeleeAttack";
 
 export class ReserveControllerMission extends ProvinceMission {
   priority: number = 250;
@@ -24,6 +27,40 @@ export class ReserveControllerMission extends ProvinceMission {
     if(!(this.prefecture = this.province.Prefectures.find((p) => p.RoomName === this.flag.pos.roomName)))
     {
       this.province.Prefectures.push(this.prefecture = new Prefecture(this.province,this.flag.pos.roomName));
+    }
+
+    if(this.prefecture.room?.controller?.reservation?.username === "Invader")
+    {
+      //We need to go blow up the core
+
+      let invaderCore = this.prefecture.structures.find((s) => s instanceof StructureInvaderCore);
+
+      if(invaderCore)
+      {
+        let stabby = this.province.RequestCreeps(LEGIONNAIRE, 1, this.Id, this.priority);
+        for(const c of stabby)
+        {
+          let plan = c.memory.plan;
+          if(plan.peek() instanceof IdleAction)
+          {
+            plan.clear(c);
+          }
+
+          if(!plan.isEmpty()) {
+            continue;
+          }
+
+          if(!c.pos.isNearTo(invaderCore.pos))
+          {
+            plan.append(new MoveAction(invaderCore.pos,1,true));
+            plan.append(new MeleeAction(invaderCore));
+          }
+        }
+      }
+
+
+
+      return;
     }
 
     if((this.prefecture?.room?.controller?.reservation?.ticksToEnd ?? 0) >= 3000)

@@ -147,18 +147,6 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
   lastCreepsHad: number = 0;
 
   run(): void {
-    //Check for validity
-    if(this.visibility && (this.flag.room?.controller?.reservation?.username) !== undefined)
-    {
-      log(3,`There is an existing reservation in this room for: ${this.flag.room.controller.reservation.username}`)
-      if(this.flag.room?.controller?.reservation?.username !== (this.province.Capital.controller?.owner?.username))
-      {
-        Game.notify(`The mining mission in ${this.flag.room?.name} has been abandoned due to something else reserving`);
-        log(1,`Abandoning mining mission for flag: ${this.flag.name} as it is reserved by: ${this.flag.room.controller.reservation.username}`);
-        this.flag.remove();
-      }
-    }
-
     let practicalMax = this.maxMiners;
     if (practicalMax <= 0) {
       this.maxMiners = this.resolveMaxMiners();

@@ -27,7 +27,7 @@ export class MiningSiteAssigner extends Delegation
       for (const source of this.province.sources) {
         if(!miningSites.find((m) => m.sourceId === source.id))
         {
-          if((source.room.controller?.reservation?.username === undefined || source.room.controller.reservation.username === this.province.Capital.controller?.owner?.username))
+          if((source.room.controller?.reservation?.username === undefined || source.room.controller.reservation.username === this.province.Capital.controller?.owner?.username || source.room.controller.reservation.username === "Invader"))
           {
             log(1,`Creating a mining mission in the room ${source.room.name} as it is reserved by: ${source.room.controller?.reservation?.username}`);
             let flagName = `${this.province.name}_${source.id}`;
