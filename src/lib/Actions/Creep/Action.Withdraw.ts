@@ -21,7 +21,9 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
 
   ResourceType: ResourceConstant;
 
-  constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | AbstractCreep | undefined = undefined) {
+  waitNearIfNotEnough : Boolean;
+
+  constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | AbstractCreep | undefined = undefined,waitNearForFull : Boolean = true) {
     let reservation : ResourceReservation | undefined = undefined;
     if(creep)
     {
@@ -32,6 +34,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
     this.TargetId = target.id;
     this.pos = target.pos;
     this.ResourceType = resource;
+    this.waitNearIfNotEnough = waitNearForFull;
   }
 
   isValid(creep: Creep): boolean {
@@ -50,7 +53,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
       let avoidCreeps = false; // < 5;
 
       let targetRange = 1;
-      if((target.store?.getUsedCapacity(this.ResourceType) ?? 0) < creep.store.getFreeCapacity(this.ResourceType))
+      if(this.waitNearIfNotEnough && (target.store?.getUsedCapacity(this.ResourceType) ?? 0) < creep.store.getFreeCapacity(this.ResourceType))
       {
         log(1,`Creep: ${creep.name} is waiting near the withdraw target due to: ${target.store?.getUsedCapacity(this.ResourceType) ?? 0} < ${creep.store.getFreeCapacity(this.ResourceType)}`);
         targetRange = 5;
@@ -62,14 +65,15 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   };
 
   toJSON: () => string = () => {
-    return WITHDRAW_ID + ":" + this.TargetId + "," + this.ResourceType + "," + this.ReservationId;
+    return WITHDRAW_ID + ":" + this.TargetId + "," + this.ResourceType + "," + this.ReservationId + "," + this.waitNearIfNotEnough;
   };
 
   static fromJSON(data: string) {
-    let components = data.split(",", 3);
+    let components = data.split(",", 4);
     let target = components[0] as Id<AnyStoreStructure | Ruin>;
     let resource = components[1] as ResourceConstant;
     let reservationId = components[2];
+    let waiting = components[3] === "true";
     let actualTarget = Game.getObjectById(target);
     if (actualTarget) {
       let withdrawAction = new WithdrawAction(actualTarget, resource);
@@ -77,6 +81,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
       {
         withdrawAction.ReservationId = reservationId;
       }
+      withdrawAction.waitNearIfNotEnough = waiting;
       return withdrawAction;
     }
     return null;

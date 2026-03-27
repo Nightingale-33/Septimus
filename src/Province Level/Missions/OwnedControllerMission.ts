@@ -83,11 +83,11 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
       levelAmount *= 10;
     }
 
-    let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.memory.Id, this.priority, {deRegisterExcess: false});
+    let requestPriority = controller.ticksToDowngrade < 2500 ? this.priority*this.priority : this.priority;
 
-    let requestPriority = controller.ticksToDowngrade < 2500 ? 500000 : this.priority;
+    let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.memory.Id, requestPriority, {deRegisterExcess: false});
 
-    creeps = this.province.RequestCreeps(WORKER, Infinity, this.memory.Id, requestPriority, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
+    creeps = this.province.RequestCreeps(WORKER, Infinity, this.memory.Id, 0, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
 
     for (const creep of creeps) {
       this.Planner.Plan(creep);

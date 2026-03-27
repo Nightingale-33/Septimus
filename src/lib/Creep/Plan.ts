@@ -41,6 +41,14 @@ Creep.prototype.executePlan = function() {
       }
     } else {
       let result = step.run(this);
+      if(!result)
+      {
+        let failedStep = this.memory.plan.Steps.shift();
+        if(failedStep)
+        {
+          failedStep.cleanup(this);
+        }
+      }
       //Todo: Use results to try and multi-task
       break;
     }

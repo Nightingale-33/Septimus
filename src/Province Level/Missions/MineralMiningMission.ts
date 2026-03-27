@@ -10,6 +10,7 @@ import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { Behaviour, Planner } from "lib/Planning/Planner";
 import { RepairReservation } from "lib/Reservations/RepairReservations";
 import { ResourceReservation } from "lib/Reservations/ResourceReservations";
+import { EXTRACTOR } from "lib/Roles/Role.Extractor";
 import { HARVESTER } from "lib/Roles/Role.Harvester";
 import { defaultsDeep } from "lodash";
 import { Province } from "Province Level/Province";
@@ -26,7 +27,7 @@ const defaultMiningSiteMemory: MineralMiningSiteMemory = {
 export class MineralMiningMission extends ProvinceMission implements Behaviour, CostMatrixAdjuster {
     memory: MineralMiningSiteMemory;
 
-    priority: number = 1;
+    priority: number = 100;
 
     mineralId: Id<Mineral>;
 
@@ -163,8 +164,6 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
             }
         }
 
-
-
         if(!this.container || this.container instanceof ConstructionSite || !this.extractor || this.extractor instanceof ConstructionSite)
         {
             log(2,`Mission ${this.flag.name} is waiting for the container and extractor to be built`);
@@ -172,7 +171,7 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
         }
 
 
-        let creeps = this.province.RequestParts([HARVESTER], WORK, 6, this.memory.Id, this.priority, {
+        let creeps = this.province.RequestCreeps(EXTRACTOR, 1, this.memory.Id, this.priority, {
           maxCreeps: 1,
           deRegisterExcess: false,
           stealCreeps: false,

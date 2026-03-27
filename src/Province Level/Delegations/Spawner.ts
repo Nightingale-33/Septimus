@@ -10,6 +10,7 @@ import { SCOUT, SpawnScout } from "../../lib/Roles/Role.Scout";
 import { CLAIMER, SpawnClaimer } from "../../lib/Roles/Role.Claimer";
 import { LEGIONNAIRE, SpawnLegionnaire } from "../../lib/Roles/Combat/Role.Legionnaire";
 import { SpawnSpearman, SPEARMAN } from "lib/Roles/Combat/Role.Spearman";
+import { EXTRACTOR, SpawnExtractor } from "lib/Roles/Role.Extractor";
 
 export class Spawner extends Delegation {
   name: string = "Spawner_";
@@ -65,6 +66,9 @@ export class Spawner extends Delegation {
         switch (topPrio.role) {
           case HARVESTER:
             spawnedName = SpawnHarvester(spawn, this.province);
+            break;
+          case EXTRACTOR:
+            spawnedName = SpawnExtractor(spawn,this.province);
             break;
           case WORKER:
             spawnedName = SpawnWorker(spawn,this.province);
