@@ -19,6 +19,7 @@ import { RepairingManager } from "./Delegations/MaintenanceManager";
 import { RoadBuilder } from "./Delegations/RoadBuilder";
 import { PrefectureAcquirer } from "./Delegations/PrefectureAcquirer";
 import { ExtensionRefiller } from "./Delegations/ExtensionRefiller";
+import { TerminalDelegation } from "./Delegations/TerminalDelegation";
 
 declare global {
   interface ProvinceMemory {
@@ -149,6 +150,7 @@ export class Province {
 
     this.GeneralDelegations.push(new PrefectureAcquirer(this));
     this.GeneralDelegations.push(new ExtensionRefiller(this));
+    this.GeneralDelegations.push(new TerminalDelegation(this));
 
     this.Capital.GeneralDelegations.push(new BaseLocationDecider(this, this.Capital));
 

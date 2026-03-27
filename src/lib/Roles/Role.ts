@@ -4,6 +4,7 @@ import { HAULER } from "./Role.Hauler";
 import { SCOUT } from "./Role.Scout";
 import { CLAIMER } from "./Role.Claimer";
 import { LEGIONNAIRE } from "./Combat/Role.Legionnaire";
+import { SPEARMAN } from "./Combat/Role.Spearman";
 
 declare global {
   interface CreepMemory {
@@ -20,4 +21,5 @@ export type Role =
   CombatRole;
 
 export type CombatRole =
-  typeof LEGIONNAIRE
+  typeof LEGIONNAIRE |
+  typeof SPEARMAN

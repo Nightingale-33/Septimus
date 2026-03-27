@@ -8,6 +8,8 @@ import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
 import { LEGIONNAIRE } from "lib/Roles/Combat/Role.Legionnaire";
 import { SimpleAttack } from "lib/Planning/Behaviours/Combat/SimpleAttack";
 import { MeleeAction } from "lib/Actions/Creep/Combat/Action.MeleeAttack";
+import { SPEARMAN } from "lib/Roles/Combat/Role.Spearman";
+import { log } from "utils/Logging/Logger";
 
 export class ReserveControllerMission extends ProvinceMission {
   priority: number = 250;
@@ -37,8 +39,11 @@ export class ReserveControllerMission extends ProvinceMission {
 
       if(invaderCore)
       {
-        let stabby = this.province.RequestCreeps(LEGIONNAIRE, 1, this.Id, this.priority);
-        for(const c of stabby)
+        let stabby = this.province.RequestParts([SPEARMAN], ATTACK, Math.ceil(invaderCore.hits / 10_000), this.Id, this.priority * 100, {deRegisterExcess: false, });
+        let looseStabby = this.province.RequestParts([SPEARMAN,LEGIONNAIRE],ATTACK,Infinity,this.Id,this.priority,{deRegisterExcess:false,stealCreeps:true,requestSpawn:false});
+        let combined = [...stabby,...looseStabby];
+        log(1,`Acquired: ${stabby.length} main creeps, and ${looseStabby} additional creeps`);
+        for(const c of combined)
         {
           let plan = c.memory.plan;
           if(plan.peek() instanceof IdleAction)

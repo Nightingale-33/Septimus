@@ -60,8 +60,10 @@ export class RepairingManager extends Delegation implements Behaviour {
     return (10_000 * (controllerLevel));
   }
 
+  exemptStructureTypes : StructureConstant[] = [STRUCTURE_INVADER_CORE];
+
   get repairables(): Structure[] {
-    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold() : s.hits < Math.min(s.hitsMax * 0.75,this.rampartHpThreshold() * 1.1))), 0, "Repair" + this.province.name + "Structures");
+    return global.cache.UseValue(() => flatten(this.province.structures.filter((s) => !this.exemptStructureTypes.includes(s.structureType)).filter((s) => s instanceof StructureRampart ? s.hits < this.rampartHpThreshold() : s.hits < Math.min(s.hitsMax * 0.75,this.rampartHpThreshold() * 1.1))), 0, "Repair" + this.province.name + "Structures");
   }
 
   ShouldExecute(): boolean {
