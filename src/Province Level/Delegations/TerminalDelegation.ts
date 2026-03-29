@@ -10,6 +10,8 @@ import { ResourceReservation } from "lib/Reservations/ResourceReservations";
 import { WithdrawAction } from "lib/Actions/Creep/Action.Withdraw";
 import { IdleAction } from "lib/Actions/Creep/Action.Idle";
 import { log } from "utils/Logging/Logger";
+import { PickupAction } from "lib/Actions/Creep/Action.Pickup";
+import { EnergyAcquisitionBehaviour } from "lib/Planning/Behaviours/EnergyAcquisition";
 
 export class TerminalDelegation extends Delegation implements Behaviour {
     name: string = "TerminalManager";
@@ -18,12 +20,15 @@ export class TerminalDelegation extends Delegation implements Behaviour {
         return this.province.name + "_" + this.name;
     }
 
+    energyAcquisitionBehaviour : EnergyAcquisitionBehaviour;
     Planner: Planner;
 
     constructor(province: Province) {
         super();
         this.province = province;
         this.Planner = new Planner(this);
+        this.energyAcquisitionBehaviour = new EnergyAcquisitionBehaviour(this.province);
+        this.energyAcquisitionBehaviour.storageBuffer = 100_000;
     }
     Interrupt(creep: AbstractCreep, afterFirst: AbstractCreep | undefined, nextAction: Action | undefined): Action | null {
         return null;
@@ -31,6 +36,7 @@ export class TerminalDelegation extends Delegation implements Behaviour {
     PlanNext(creep: AbstractCreep): Action | null {
         if(creep.store.getFreeCapacity() == 0 || (creep.store.getUsedCapacity() > 0 && creep.pos.inRangeTo(this.Terminal!,5)))
         {
+            log(1,`Terminal Plan ${creep.name}: filling Terminal`);
             for(const fillType in creep.store.contents)
             {
                 if(creep.store.contents[fillType] > 0)
@@ -42,9 +48,35 @@ export class TerminalDelegation extends Delegation implements Behaviour {
 
         if(creep.store.getFreeCapacity() > 0)
         {
+            log(1,`Terminal Plan ${creep.name}: Looking for minerals to carry`)
             //Look for minerals
+            let tombStones = sortBy(filter(this.province.Capital.room.find(FIND_TOMBSTONES),(t) => (t.store.getUsedCapacity() - t.store.getUsedCapacity(RESOURCE_ENERGY)) > 0),(t) => t.ticksToDecay);
+            if(tombStones[0])
+            {
+                for(const key in tombStones[0].store)
+                {
+                    if(key == RESOURCE_ENERGY)
+                    {
+                        continue;
+                    }
+                    if(ResourceReservation.GetPostReservationStore(tombStones[0],key as ResourceConstant).used > 0)
+                    {
+                        log(1,`Terminal Plan ${creep.name}: Withdrawing from a Tombstone`)
+                        return new WithdrawAction(tombStones[0],key as ResourceConstant,creep,false);
+                    }
+                }
+            }
+
+            let droppedMinerals = sortBy(filter(this.province.Capital.room.find(FIND_DROPPED_RESOURCES),(r) => r.resourceType !== RESOURCE_ENERGY),(r) => r.pos.getMultiRoomRangeTo(creep.pos));
+            if(droppedMinerals[0])
+            {
+                log(1,`Terminal Plan ${creep.name}: Picking up loose minerals`);
+                return new PickupAction(droppedMinerals[0],creep);
+            }
+
             let containers = sortBy(filter(this.province.structures, (s) : s is StructureContainer => s instanceof StructureContainer),(s) => s.pos.getMultiRoomRangeTo(creep.pos)) as StructureContainer[];
-            let mineralContainer = containers.find((container) => (container.store.getUsedCapacity() - container.store.getUsedCapacity(RESOURCE_ENERGY)) > 0);
+            //At least one carry part worth
+            let mineralContainer = containers.find((container) => (container.store.getUsedCapacity() - container.store.getUsedCapacity(RESOURCE_ENERGY)) >= 50);
             if(mineralContainer)
             {
                 for(const key in mineralContainer.store)
@@ -53,8 +85,9 @@ export class TerminalDelegation extends Delegation implements Behaviour {
                     {
                         continue;
                     }
-                    if(ResourceReservation.GetPostReservationStore(mineralContainer,key as ResourceConstant).free > 0)
+                    if(ResourceReservation.GetPostReservationStore(mineralContainer,key as ResourceConstant).used > 0)
                     {
+                        log(1,`Terminal Plan ${creep.name}: Withdrawing Minerals from a container`);
                         return new WithdrawAction(mineralContainer,key as ResourceConstant,creep,false);
                     }
                 }
@@ -62,26 +95,28 @@ export class TerminalDelegation extends Delegation implements Behaviour {
 
             if(ResourceReservation.GetPostReservationStore(this.Terminal!,RESOURCE_ENERGY).used >= 100_000)
             {
+                log(1,`Terminal Plan ${creep.name}: Idling due to full Terminal`);
                 return new IdleAction();
             }
 
-            if(containers[0])
-            {
-                if(ResourceReservation.GetPostReservationStore(containers[0],RESOURCE_ENERGY).used >= creep.store.getFreeCapacity())
-                {
-                    return new WithdrawAction(containers[0],RESOURCE_ENERGY,creep);
-                }
-            }
+            log(1,`Terminal Plan ${creep.name}: Looking for energy`);
 
-            if(this.province.storage)
+            return this.energyAcquisitionBehaviour.PlanNext(creep);
+        }
+
+        if(creep.store.getUsedCapacity() > 0)
+        {
+            for(const fillType in creep.store.contents)
             {
-                let postReservationAmount = ResourceReservation.GetPostReservationStore(this.province.storage,RESOURCE_ENERGY,true).used;
-                if(postReservationAmount >= 100_000 && (postReservationAmount - 100_000) >= creep.store.getFreeCapacity())
+                if(creep.store.contents[fillType] > 0)
                 {
-                    return new WithdrawAction(this.province.storage,RESOURCE_ENERGY,creep);
+                    log(1,`Terminal Plan ${creep.name}: Filling Terminal with whatever is on hand`);
+                    return new FillAction(this.Terminal!,fillType as ResourceConstant,creep);
                 }
             }
         }
+
+        log(1,`Could not determine a plan for ${creep.name} as part of Terminal filling`);
 
         return null;
     }
@@ -101,6 +136,11 @@ export class TerminalDelegation extends Delegation implements Behaviour {
             {
                 let resourceKey = resource as ResourceConstant;
                 let amountInStore = this.Terminal!.store[resourceKey];
+                if(resourceKey === RESOURCE_ENERGY && amountInStore < 25_000)
+                {
+                    continue;
+                }
+
                 if(amountInStore > 0)
                 {
                     let relevantOrders = Game.market.getAllOrders((o) => o.resourceType === resourceKey && o.type === ORDER_BUY);
@@ -138,17 +178,17 @@ export class TerminalDelegation extends Delegation implements Behaviour {
             }
         }
 
-
-
         let dedicatedHauler = this.province.RequestCreeps(HAULER,1,this.Id,30);
 
         if(dedicatedHauler.length == 0)
         {
+            log(1,`No creeps available for Terminal`);
             return;
         }
 
         for (const creep of dedicatedHauler)
         {
+            log(1,`Planning for ${creep.name} as part of Terminal`);
             this.Planner.Plan(creep);
         }
     }

@@ -52,7 +52,7 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
   miningPos: RoomPosition;
   maxMiners: number = 1;
 
-  priority: number = 1000000;
+  priority: number = 1_000_000;
 
   static GetFlagColours(): { primary: ColorConstant, secondary: ColorConstant } {
     return { primary: COLOR_GREY, secondary: COLOR_YELLOW };

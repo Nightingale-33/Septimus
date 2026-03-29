@@ -158,8 +158,8 @@ export class EnergyLogisticsManager extends Delegation implements Behaviour {
     return true;
   }
 
-  defenseSinkOrder : StructureConstant[] = [STRUCTURE_TOWER,STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_STORAGE];
-  sinkTypeOrder: StructureConstant[] = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE];
+  defenseSinkOrder : StructureConstant[] = [STRUCTURE_TOWER, STRUCTURE_STORAGE];
+  sinkTypeOrder: StructureConstant[] = [STRUCTURE_TOWER, STRUCTURE_STORAGE];
 
   lastCreepsOwned:number = 0;
   Execute(): void {

@@ -24,7 +24,7 @@ export class TowerDelegation extends Delegation
   }
   Execute(): void {
     //Hostile first
-    let hostiles = this.prefecture.room.find(FIND_HOSTILE_CREEPS).filter(hostile => hostile.body.filter(c => c.hits > 0 && (c.type == WORK || c.type == ATTACK || c.type == RANGED_ATTACK)).length > 0);
+    let hostiles = this.prefecture.room.find(FIND_HOSTILE_CREEPS).filter(hostile => hostile.body.filter(c => c.hits > 0 && (c.type == WORK || c.type == ATTACK || c.type == RANGED_ATTACK || c.type == HEAL)).length > 0);
     if(hostiles.length > 0)
     {
       //Murder

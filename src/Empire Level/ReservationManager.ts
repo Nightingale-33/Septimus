@@ -52,7 +52,7 @@ export class ReservationManager extends Delegation
             for(const reservation of Memory.RsrcResv[id])
             {
               let reserver = reservation.reserver;
-              let rObj = Game.getObjectById(reserver);
+              let rObj = Game.getObjectById(reserver) as (Creep | null);
               if(rObj && rObj.pos.roomName === obj.pos.roomName)
               {
                 vis.line(rObj.pos,obj.pos,{lineStyle:"dotted",color:reservation.amount > 0 ? "#00FF00" : "#FF0000"});

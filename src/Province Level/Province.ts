@@ -18,8 +18,8 @@ import { BaseLocationDecider } from "../Prefecture Level/RoomPlanning/BaseLocati
 import { RepairingManager } from "./Delegations/MaintenanceManager";
 import { RoadBuilder } from "./Delegations/RoadBuilder";
 import { PrefectureAcquirer } from "./Delegations/PrefectureAcquirer";
-import { ExtensionRefiller } from "./Delegations/ExtensionRefiller";
 import { TerminalDelegation } from "./Delegations/TerminalDelegation";
+import { SpawnRefiller } from "./Delegations/SpawnRefiller";
 
 declare global {
   interface ProvinceMemory {
@@ -45,7 +45,7 @@ export interface CreepRequestOptions {
   clearPlan? : boolean
 }
 
-const defaultCreepRequestOptions: CreepRequestOptions = {
+export const defaultCreepRequestOptions: CreepRequestOptions = {
   deRegisterExcess: true,
   requestSpawn: true,
   spawnRoleSelector: (roles) => roles[0],
@@ -149,7 +149,7 @@ export class Province {
     this.Roads = new RoadBuilder(this);
 
     this.GeneralDelegations.push(new PrefectureAcquirer(this));
-    this.GeneralDelegations.push(new ExtensionRefiller(this));
+    this.GeneralDelegations.push(new SpawnRefiller(this));
     this.GeneralDelegations.push(new TerminalDelegation(this));
 
     this.Capital.GeneralDelegations.push(new BaseLocationDecider(this, this.Capital));

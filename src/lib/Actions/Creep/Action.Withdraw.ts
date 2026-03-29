@@ -11,9 +11,9 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   Name: string = "Withdraw";
   Chat: string = "📤";
 
-  TargetId: Id<AnyStoreStructure | Ruin>;
+  TargetId: Id<AnyStoreStructure | Ruin | Tombstone>;
 
-  get Target(): AnyStoreStructure | Ruin | null {
+  get Target(): AnyStoreStructure | Ruin | Tombstone | null {
     return Game.getObjectById(this.TargetId);
   }
 
@@ -23,7 +23,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
 
   waitNearIfNotEnough : Boolean;
 
-  constructor(target: AnyStoreStructure | Ruin, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | AbstractCreep | undefined = undefined,waitNearForFull : Boolean = true) {
+  constructor(target: AnyStoreStructure | Ruin | Tombstone, resource: ResourceConstant = RESOURCE_ENERGY, creep : Creep | AbstractCreep | undefined = undefined,waitNearForFull : Boolean = true) {
     let reservation : ResourceReservation | undefined = undefined;
     if(creep)
     {
@@ -38,7 +38,7 @@ export class WithdrawAction extends ReservingAction<ResourceReservation> {
   }
 
   isValid(creep: Creep): boolean {
-    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0 && ResourceReservation.GetPostReservationStore(this.Target,this.ResourceType).free > 0;
+    return this.Target !== null && creep.store.getFreeCapacity(this.ResourceType) > 0 && (this.Target.store.getUsedCapacity(this.ResourceType) ?? 0) > 0;
   }
 
   run(creep: Creep) : boolean {

@@ -9,8 +9,8 @@ export function SpawnExtractor(spawn: StructureSpawn, province: Province) : stri
   const baseBod = [WORK, MOVE];
   const bodyAddon = [WORK];
 
-  let largestSlowBody = GetLargestBody(spawn,baseBod,bodyAddon,SOURCE_HARVEST_PARTS,false);
-  let largestBody = GetLargestBody(spawn, baseBod, bodyAddon, SOURCE_HARVEST_PARTS,true);
+  let largestSlowBody = GetLargestBody(spawn,baseBod,bodyAddon,Infinity,false);
+  let largestBody = GetLargestBody(spawn, baseBod, bodyAddon, Infinity,true);
   if(largestSlowBody.filter((bdc) => bdc == WORK).length > largestBody.filter((bdc) => bdc == WORK).length)
   {
     largestBody = largestSlowBody;

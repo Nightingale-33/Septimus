@@ -34,21 +34,21 @@ Creep.prototype.executePlan = function() {
   while (!this.memory.plan.isEmpty()) {
     let step = this.memory.plan.Steps[0];
     if (!step.isValid(this)) {
-      log(1,`Plan Step: ${JSON.stringify(step)} is no longer valid`);
+      log(2,`Plan Step: ${JSON.stringify(step)} is no longer valid`);
       let completedStep = this.memory.plan.Steps.shift();
       if (completedStep) {
         completedStep.cleanup(this);
       }
     } else {
       let result = step.run(this);
-      if(!result)
-      {
-        let failedStep = this.memory.plan.Steps.shift();
-        if(failedStep)
-        {
-          failedStep.cleanup(this);
-        }
-      }
+      // if(!result)
+      // {
+      //   let failedStep = this.memory.plan.Steps.shift();
+      //   if(failedStep)
+      //   {
+      //     failedStep.cleanup(this);
+      //   }
+      // }
       //Todo: Use results to try and multi-task
       break;
     }

@@ -11,6 +11,8 @@ import { IdleAction } from "../../Actions/Creep/Action.Idle";
 export class EnergyAcquisitionBehaviour implements Behaviour {
     province : Province;
 
+  storageBuffer : number = 0;
+
   constructor(province : Province) {
     this.province = province;
   }
@@ -44,7 +46,7 @@ export class EnergyAcquisitionBehaviour implements Behaviour {
       let containers = creep.room?.find(FIND_STRUCTURES, {
         filter: (s): s is StructureContainer => s instanceof StructureContainer && ResourceReservation.GetPostReservationStore(s, RESOURCE_ENERGY).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)
       }) ?? [];
-      if (storage && ResourceReservation.GetPostReservationStore(storage, RESOURCE_ENERGY,true).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
+      if (storage && ResourceReservation.GetPostReservationStore(storage,RESOURCE_ENERGY).used > this.storageBuffer && ResourceReservation.GetPostReservationStore(storage, RESOURCE_ENERGY,true).used >= creep.store.getFreeCapacity(RESOURCE_ENERGY)) {
         return new WithdrawAction(storage, RESOURCE_ENERGY, creep);
       }
       if (resources.length > 0) {
