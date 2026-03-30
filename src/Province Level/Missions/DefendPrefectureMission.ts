@@ -11,7 +11,7 @@ import { log } from "../../utils/Logging/Logger";
 
 export class DefendPrefectureMission extends ProvinceMission
 {
-  priority: number = 250000;
+  priority: number = 750000;
 
   static GetFlagColours(): { primary: ColorConstant, secondary: ColorConstant } {
     return { primary: COLOR_RED, secondary: COLOR_GREY };
@@ -49,7 +49,7 @@ export class DefendPrefectureMission extends ProvinceMission
               return;
             }
 
-            plan.append(new MoveAction(this.pos,1,true));
+            plan.append(new MoveAction(this.pos,15,true));
           }
 
           return;
@@ -65,7 +65,7 @@ export class DefendPrefectureMission extends ProvinceMission
 
         let enemyAttack = sum(enemies,(hc) => CountParts(hc)[ATTACK]);
         let defensePredicate = (province : Province) : boolean => province.Capital.room.energyAvailable >= province.Capital.room.energyCapacityAvailable * 0.5;
-        let force = this.province.RequestParts([LEGIONNAIRE], ATTACK, enemyAttack+1,this.Id,enemyAttack*this.priority, {deRegisterExcess:false, spawnPredicate: defensePredicate});
+        let force = this.province.RequestParts([LEGIONNAIRE], ATTACK, enemyAttack*2,this.Id,enemyAttack*this.priority, {deRegisterExcess:false, spawnPredicate: defensePredicate});
 
         for(const f of force)
         {
@@ -77,13 +77,9 @@ export class DefendPrefectureMission extends ProvinceMission
               continue;
             }
 
-            plan.append(new MoveAction(this.pos,1,true));
+            plan.append(new MoveAction(this.pos,15,true));
           } else
           {
-            if(plan.peek() instanceof MoveAction)
-            {
-              plan.clear(f);
-            }
             this.combatPlanner.Plan(f);
           }
         }

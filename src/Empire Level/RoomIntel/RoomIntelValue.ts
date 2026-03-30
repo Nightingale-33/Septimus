@@ -1,5 +1,5 @@
-import { GetRoomPositionFromJSON } from "../../lib/Prototypes/RoomPosition";
-import { log } from "../../utils/Logging/Logger";
+import { GetRoomPositionFromJSON } from "../../lib/Prototypes/RoomPosition.js";
+import { log } from "../../utils/Logging/Logger.js";
 
 export class RoomIntel {
   sources: RoomPosition[] = [];

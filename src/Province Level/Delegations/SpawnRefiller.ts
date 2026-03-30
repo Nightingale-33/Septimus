@@ -9,7 +9,7 @@ import { Behaviour, Planner } from "lib/Planning/Planner";
 import { ResourceReservation } from "lib/Reservations/ResourceReservations";
 import { HAULER } from "lib/Roles/Role.Hauler";
 import { WORKER } from "lib/Roles/Role.Worker";
-import { any, filter, min, sortBy, sum } from "lodash";
+import { any, filter, forEach, min, sortBy, sum } from "lodash";
 import { defaultCreepRequestOptions, Province } from "../Province";
 import { log } from "utils/Logging/Logger";
 
@@ -21,7 +21,7 @@ export class SpawnRefiller extends Delegation implements Behaviour
         return this.province.name+"_"+this.name;
     }
 
-    priority:number = 500_000;
+    priority:number = 950_000;
 
     constructor(province:Province)
     {
@@ -78,6 +78,14 @@ export class SpawnRefiller extends Delegation implements Behaviour
 
         let spawnPred = (province:Province)=> {
             return province.creeps.length === 0 ? true : defaultCreepRequestOptions.spawnPredicate!(province);
+        }
+
+        for(const pref of this.province.Prefectures)
+        {
+            if(pref.Defense.ShouldExecute())
+            {
+                desiredCarryParts *= 2;
+            }
         }
 
         let haulers = this.province.RequestParts([HAULER,WORKER],CARRY,desiredCarryParts,this.Id,this.priority,{deRegisterExcess:true,stealCreeps:true,spawnRoleSelector:(roles) => roles[0], spawnPredicate: spawnPred});

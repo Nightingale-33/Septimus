@@ -1,6 +1,6 @@
-import { Delegation } from "../../lib/Delegation";
-import { RoomIntel } from "./RoomIntelValue";
-import { log } from "../../utils/Logging/Logger";
+import { Delegation } from "../../lib/Delegation.js";
+import { RoomIntel } from "./RoomIntelValue.js";
+import { log } from "../../utils/Logging/Logger.js";
 
 declare global {
   interface EmpireMemory

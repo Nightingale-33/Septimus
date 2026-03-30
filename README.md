@@ -1,55 +1,79 @@
-# Screeps Typescript Starter
+# Create Screeps TypeScript Starter
 
-Screeps Typescript Starter is a starting point for a Screeps AI written in Typescript. It provides everything you need to start writing your AI whilst leaving `main.ts` as empty as possible.
+Modern TypeScript starter template for [Screeps MMO](https://screeps.com/) with esbuild and hot reloading.
 
-## Basic Usage
-
-You will need:
-
-- [Node.JS](https://nodejs.org/en/download) (10.x || 12.x)
-- A Package Manager ([Yarn](https://yarnpkg.com/en/docs/getting-started) or [npm](https://docs.npmjs.com/getting-started/installing-node))
-- Rollup CLI (Optional, install via `npm install -g rollup`)
-
-Download the latest source [here](https://github.com/screepers/screeps-typescript-starter/archive/master.zip) and extract it to a folder.
-
-Open the folder in your terminal and run your package manager to install the required packages and TypeScript declaration files:
+## Quick Start
 
 ```bash
-# npm
-npm install
+# Create a new Screeps bot project
+pnpm create @tigatok/screeps-ts-starter my-screeps-bot
+cd my-screeps-bot
 
-# yarn
-yarn
+# Install dependencies
+pnpm install
+
+# Set up your Screeps access
+cp .env.example .env
+cp .screeps.json.example .screeps.json
+
+# Start developing with hot reload
+pnpm watch
 ```
 
-Fire up your preferred editor with typescript installed and you are good to go!
+## What's Included
 
-### Rollup and code upload
+- **⚡ Fast builds** with esbuild
+- **🔥 Hot reload** - automatically uploads on file changes
+- **📁 Local development** - option to copy files to local Screeps client
+- **🎯 Modern TypeScript** - strict mode with latest features
+- **📦 Zero config** - works out of the box
+- **🗄️ screeps.json** - Supports screeps.json for easier config
+- **🐳 Docker support** - Contains a docker-compose file for running a local server
 
-Screeps Typescript Starter uses rollup to compile your typescript and upload it to a screeps server.
+## Available Scripts
 
-Move or copy `screeps.sample.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
+```bash
+pnpm build        # Build for production
+pnpm upload       # Upload to Screeps servers
+pnpm push         # Build + upload
+pnpm push:local   # Build + copy to local client
+pnpm push:ptr     # Build + upload to PTR server
+pnpm watch        # Watch files + auto upload
+pnpm watch:local  # Watch files + copy to local client
+pnpm watch:ptr    # Watch files + upload to PTR server
+```
 
-Running `rollup -c` will compile your code and do a "dry run", preparing the code for upload but not actually pushing it. Running `rollup -c --environment DEST:main` will compile your code, and then upload it to a screeps server using the `main` config from `screeps.json`.
+## Configuration
 
-You can use `-cw` instead of `-c` to automatically re-run when your source code changes - for example, `rollup -cw --environment DEST:main` will automatically upload your code to the `main` configuration every time your code is changed.
+Update env variables in `.env`:
 
-Finally, there are also NPM scripts that serve as aliases for these commands in `package.json` for IDE integration. Running `npm run push-main` is equivalent to `rollup -c --environment DEST:main`, and `npm run watch-sim` is equivalent to `rollup -cw --dest sim`.
+```env
+SCREEPS_BRANCH=default
 
-#### Important! To upload code to a private server, you must have [screepsmod-auth](https://github.com/ScreepsMods/screepsmod-auth) installed and configured!
+# Screeps MMO server configuration
+SCREEPS_TOKEN=your_token_here
 
-## Typings
+# Only needed if running a local server
+SCREEPS_LOCAL_USERNAME=your_username
+SCREEPS_LOCAL_PASSWORD=your_password
+```
 
-The type definitions for Screeps come from [typed-screeps](https://github.com/screepers/typed-screeps). If you find a problem or have a suggestion, please open an issue there.
+Get your token from [Screeps Account Settings](https://screeps.com/a/#!/account/auth-tokens).
 
-## Documentation
+## Running Local Server
 
-We've also spent some time reworking the documentation from the ground-up, which is now generated through [Gitbooks](https://www.gitbook.com/). Includes all the essentials to get you up and running with Screeps AI development in TypeScript, as well as various other tips and tricks to further improve your development workflow.
+To run a local Screeps server, ensure you have Docker installed. Copy the server/.env.example to server/.env and replace your steam key and path to nw. Then run:
 
-Maintaining the docs will also become a more community-focused effort, which means you too, can take part in improving the docs for this starter kit.
+```bash
+cd server && docker-compose up -d
+```
 
-To visit the docs, [click here](https://screepers.gitbook.io/screeps-typescript-starter/).
+## Features
 
-## Contributing
-
-Issues, Pull Requests, and contribution to the docs are welcome! See our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+- Modern ES2020+ TypeScript setup
+- Automatic bundling with esbuild
+- Strict type checking
+- Hot reload development workflow
+- Support for both MMO and private
+- Supports `screeps.json` configuration
+- Contains docker-compose for local server

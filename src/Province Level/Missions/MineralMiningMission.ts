@@ -27,7 +27,7 @@ const defaultMiningSiteMemory: MineralMiningSiteMemory = {
 export class MineralMiningMission extends ProvinceMission implements Behaviour, CostMatrixAdjuster {
     memory: MineralMiningSiteMemory;
 
-    priority: number = 100;
+    priority: number = 1000;
 
     mineralId: Id<Mineral>;
 

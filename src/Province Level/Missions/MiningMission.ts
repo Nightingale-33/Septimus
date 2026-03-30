@@ -1,7 +1,7 @@
 import { HARVESTER } from "../../lib/Roles/Role.Harvester";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { HarvestAction } from "../../lib/Actions/Creep/Action.Harvest";
-import { defaultsDeep, max } from "lodash";
+import { defaultsDeep, find, max } from "lodash";
 import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
@@ -17,6 +17,7 @@ import { RepairReservation } from "../../lib/Reservations/RepairReservations";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
+import { DefendPrefectureMission } from "./DefendPrefectureMission";
 
 interface MiningSiteMemory extends ProvinceMissionMemory {
 }
@@ -147,6 +148,12 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
   lastCreepsHad: number = 0;
 
   run(): void {
+    if(find(this.province.ActiveMissions, (m) => m instanceof DefendPrefectureMission && m.pos.roomName == this.flag.pos.roomName))
+    {
+      log(1,`Skipping mining mission due to danger`);
+      return;
+    }
+
     let practicalMax = this.maxMiners;
     if (practicalMax <= 0) {
       this.maxMiners = this.resolveMaxMiners();
