@@ -93,15 +93,12 @@ export class TerminalDelegation extends Delegation implements Behaviour {
                 }
             }
 
-            if(ResourceReservation.GetPostReservationStore(this.Terminal!,RESOURCE_ENERGY).used >= 100_000)
+            if(ResourceReservation.GetPostReservationStore(this.Terminal!,RESOURCE_ENERGY).used < 100_000)
             {
-                log(1,`Terminal Plan ${creep.name}: Idling due to full Terminal`);
-                return new IdleAction();
+                log(1,`Terminal Plan ${creep.name}: Looking for energy`);
+
+                return this.energyAcquisitionBehaviour.PlanNext(creep);
             }
-
-            log(1,`Terminal Plan ${creep.name}: Looking for energy`);
-
-            return this.energyAcquisitionBehaviour.PlanNext(creep);
         }
 
         if(creep.store.getUsedCapacity() > 0)
@@ -118,7 +115,7 @@ export class TerminalDelegation extends Delegation implements Behaviour {
 
         log(1,`Could not determine a plan for ${creep.name} as part of Terminal filling`);
 
-        return null;
+        return new IdleAction();
     }
 
     get Terminal() : StructureTerminal | undefined {

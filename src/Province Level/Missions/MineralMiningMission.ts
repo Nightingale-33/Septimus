@@ -170,7 +170,7 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
             return;
         }
 
-        if(this.mineral && (this.mineral.ticksToRegeneration ?? 50_000) > 50)
+        if(this.mineral && (this.mineral.ticksToRegeneration ?? 0) > 50)
         {
             log(2,`Mission ${this.flag.name} is waiting for the mineral to be available`);
             return;
