@@ -20,6 +20,8 @@ import { RoadBuilder } from "./Delegations/RoadBuilder";
 import { PrefectureAcquirer } from "./Delegations/PrefectureAcquirer";
 import { TerminalDelegation } from "./Delegations/TerminalDelegation";
 import { SpawnRefiller } from "./Delegations/SpawnRefiller";
+import { OpportunisticRenewer } from "./Delegations/OpportunisticRenewer";
+import { Recycler } from "./Delegations/CreepRecycler";
 
 declare global {
   interface ProvinceMemory {
@@ -151,6 +153,8 @@ export class Province {
     this.GeneralDelegations.push(new PrefectureAcquirer(this));
     this.GeneralDelegations.push(new SpawnRefiller(this));
     this.GeneralDelegations.push(new TerminalDelegation(this));
+    this.GeneralDelegations.push(new OpportunisticRenewer(this));
+    this.GeneralDelegations.push(new Recycler(this));
 
     this.Capital.GeneralDelegations.push(new BaseLocationDecider(this, this.Capital));
 

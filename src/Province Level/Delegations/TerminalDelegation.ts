@@ -133,7 +133,7 @@ export class TerminalDelegation extends Delegation implements Behaviour {
             {
                 let resourceKey = resource as ResourceConstant;
                 let amountInStore = this.Terminal!.store[resourceKey];
-                if(resourceKey === RESOURCE_ENERGY && amountInStore < 25_000)
+                if(resourceKey === RESOURCE_ENERGY && amountInStore <= 150_000)
                 {
                     continue;
                 }

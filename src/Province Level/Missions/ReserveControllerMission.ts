@@ -40,7 +40,7 @@ export class ReserveControllerMission extends ProvinceMission {
       if(invaderCore)
       {
         let stabby = this.province.RequestParts([SPEARMAN], ATTACK, Math.ceil(invaderCore.hits / 10_000), this.Id, this.priority * 100, {deRegisterExcess: false, });
-        let looseStabby = this.province.RequestParts([SPEARMAN,LEGIONNAIRE],ATTACK,Infinity,this.Id,this.priority,{deRegisterExcess:false,stealCreeps:true,requestSpawn:false});
+        let looseStabby = this.province.RequestParts([SPEARMAN,LEGIONNAIRE],ATTACK,Infinity,this.Id,this.priority,{deRegisterExcess:false,stealCreeps:true,requestSpawn:false, clearPlan: true});
         let combined = [...stabby,...looseStabby];
         log(1,`Acquired: ${stabby.length} main creeps, and ${looseStabby} additional creeps`);
         for(const c of combined)

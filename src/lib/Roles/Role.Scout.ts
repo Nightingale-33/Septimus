@@ -8,7 +8,7 @@ export function SpawnScout(spawn: StructureSpawn, province: Province) : string |
   const baseBody = [MOVE];
   const bodyAddon = [TOUGH];
 
-  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon);
+  let largestBody = GetLargestBody(spawn, baseBody, bodyAddon,3);
     if (largestBody.length == 0) {
       return null;
     }

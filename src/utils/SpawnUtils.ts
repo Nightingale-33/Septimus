@@ -1,4 +1,4 @@
-import { countBy, sortBy } from "lodash";
+import { countBy, map, sortBy, sum } from "lodash";
 import { log } from "./Logging/Logger";
 import { Role } from "../lib/Roles/Role";
 import { Plan } from "../lib/Creep/Plan";
@@ -17,6 +17,11 @@ export function MaxSpawnEnergy(spawn : StructureSpawn): number
 export function AvailableSpawnEnergy(spawn : StructureSpawn): number
 {
   return spawn.room.energyAvailable;
+}
+
+export function GetBodyCost(body : BodyPartConstant[]) : number
+{
+    return sum(map(body, (b) => BODYPART_COST[b]));
 }
 
 export const defaultBodySortOrder : BodyPartConstant[] = [TOUGH,CARRY,WORK,ATTACK,RANGED_ATTACK,CLAIM,HEAL,MOVE];

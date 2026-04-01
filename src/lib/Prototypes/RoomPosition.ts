@@ -6,7 +6,7 @@ export const x = "";
 declare global {
   interface RoomPosition {
     toJSON() : string;
-    getMultiRoomRangeTo(target: RoomPosition | {pos: RoomPosition}) : number
+    getMultiRoomRangeTo(target: RoomPosition) : number
   }
 }
 
@@ -17,6 +17,7 @@ RoomPosition.prototype.toJSON = function(): string
 
 RoomPosition.prototype.getMultiRoomRangeTo = function(target: RoomPosition) : number
 {
+  console.log(`Room distance check ${this.roomName} / ${target.roomName}`);
   if (this.roomName == target.roomName) {
     return this.getRangeTo(target);
   } else {

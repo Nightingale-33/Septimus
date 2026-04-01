@@ -65,7 +65,7 @@ export class DefendPrefectureMission extends ProvinceMission
 
         let enemyAttack = sum(enemies,(hc) => CountParts(hc)[ATTACK]);
         let defensePredicate = (province : Province) : boolean => province.Capital.room.energyAvailable >= province.Capital.room.energyCapacityAvailable * 0.5;
-        let force = this.province.RequestParts([LEGIONNAIRE], ATTACK, enemyAttack*2,this.Id,enemyAttack*this.priority, {deRegisterExcess:false, spawnPredicate: defensePredicate});
+        let force = this.province.RequestParts([LEGIONNAIRE], ATTACK, enemyAttack*2,this.Id,enemyAttack*this.priority, {deRegisterExcess:false, spawnPredicate: defensePredicate, clearPlan: true});
 
         for(const f of force)
         {
