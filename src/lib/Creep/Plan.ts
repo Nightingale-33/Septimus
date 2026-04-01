@@ -31,6 +31,10 @@ Creep.prototype.checkPlan = function() {
 };
 
 Creep.prototype.executePlan = function() {
+  if(this.spawning)
+  {
+    return;
+  }
   while (!this.memory.plan.isEmpty()) {
     let step = this.memory.plan.Steps[0];
     if (!step.isValid(this)) {

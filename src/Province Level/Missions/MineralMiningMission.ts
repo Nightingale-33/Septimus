@@ -188,7 +188,10 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
         }
 
         for (const creep of creeps) {
-          this.Planner.Plan(creep);
+            if(creep.memory.plan.isEmpty())
+            {
+                this.Planner.Plan(creep);
+            }
         }
     }
 

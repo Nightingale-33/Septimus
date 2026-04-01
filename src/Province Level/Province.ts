@@ -1,6 +1,6 @@
 import { Prefecture } from "../Prefecture Level/Prefecture";
 import { log } from "../utils/Logging/Logger";
-import { any, defaultsDeep, filter, flatten, remove, sum } from "lodash";
+import { any, defaultsDeep, filter, flatten, map, remove, sum } from "lodash";
 import { Delegation } from "../lib/Delegation";
 import { Profile } from "../utils/Profiler/SimpleProfile";
 import { Empire } from "../Empire Level/Empire";
@@ -187,6 +187,8 @@ export class Province {
         mission.run();
       });
     }
+
+    this.memory.AttachedPrefectures = map(this.Prefectures, (p) => p.RoomName);
   }
 
   Tidy() {

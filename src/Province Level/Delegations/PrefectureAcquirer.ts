@@ -9,6 +9,7 @@ import { min, remove, sortBy } from "lodash";
 import { ScoutAction } from "../../lib/Actions/Creep/Action.Scout";
 import { ReserveControllerMission } from "../Missions/ReserveControllerMission";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
+import { RoomIntel } from "Empire Level/RoomIntel/RoomIntelValue";
 
 export class PrefectureAcquirer extends Delegation implements Behaviour {
   province: Province;
@@ -79,7 +80,7 @@ export class PrefectureAcquirer extends Delegation implements Behaviour {
 
     if (this.scoutQueue.length > 0) {
       log(10,`Scouting Queue: ${JSON.stringify(this.scoutQueue)}`);
-      let scouts = this.province.RequestCreeps(SCOUT, 1, this.Id, 1, {
+      let scouts = this.province.RequestCreeps(SCOUT, GetAccessibleRooms(this.province.Capital.RoomName).length, this.Id, 1, {
         deRegisterExcess: false,
         spawnPredicate: (p) => p.Capital.room.energyAvailable >= 300
       });
@@ -93,7 +94,7 @@ export class PrefectureAcquirer extends Delegation implements Behaviour {
     let adjacentRooms = GetAccessibleRooms(this.province.Capital.RoomName);
     for(const adjacent of adjacentRooms)
     {
-      let intel = global.empire.RoomIntel.data[adjacent];
+      let intel = global.empire.RoomIntel.data[adjacent] as RoomIntel;
       if(!intel)
       {
         continue;

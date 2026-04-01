@@ -48,33 +48,38 @@ export class ScoutAction extends Action {
       priority: 1,
       visualizePathStyle: {},
       avoidCreeps: avoidCreeps,
-
       swampCost: 5, plainCost:2
     }, { visualizePathStyle: { stroke: "#FF0000" }, avoidCreeps: true });
 
-    if(!global.empire.RoomIntel.data[creep.room.name])
+
+    for(const roomName in Game.rooms)
     {
-      let intel = new RoomIntel();
-      log(1,`Recording Intel for: ${creep.room.name}`);
-      this.fillIntel(intel,creep);
-      global.empire.RoomIntel.data[creep.room.name] = intel;
+        let room = Game.rooms[roomName];
+        let intel = global.empire.RoomIntel.data[roomName];
+        if(!intel)
+        {
+          intel = new RoomIntel();
+          log(1,`Recording Intel for: ${roomName}`);
+        }
+        this.fillIntel(intel,room);
+        global.empire.RoomIntel.data[roomName] = intel;
     }
 
     return result == OK || result == ERR_TIRED;
   }
 
-  fillIntel(intel: RoomIntel, creep: Creep)
+  fillIntel(intel: RoomIntel, room : Room)
   {
-    let sources = creep.room.find(FIND_SOURCES);
+    let sources = room.find(FIND_SOURCES);
     intel.sources = sources.map((s) => s.pos);
 
-    if(creep.room.controller)
+    if(room.controller)
     {
-      intel.controller = creep.room.controller.pos;
-      intel.owner = creep.room.controller.owner?.username ?? "";
+      intel.controller = room.controller.pos;
+      intel.owner = room.controller.owner?.username ?? "";
     }
 
-    let minerals = creep.room.find(FIND_MINERALS);
+    let minerals = room.find(FIND_MINERALS);
     intel.minerals = minerals.map((m) => m.pos);
     intel.mineralTypes = minerals.map((m) => m.mineralType);
   }

@@ -1,3 +1,4 @@
+import { MoveAction } from "lib/Actions/Creep/Action.Move";
 import { Delegation } from "lib/Delegation";
 import { Role } from "lib/Roles/Role";
 import { HAULER } from "lib/Roles/Role.Hauler";
@@ -37,21 +38,39 @@ export class OpportunisticRenewer extends Delegation {
     }
 
     Execute(): void {
-        for(const spawn of this.province.spawns)
+        let spawn = this.province.spawns[0];
+        if(!spawn)
         {
-            let availableEnergy = AvailableSpawnEnergy(spawn);
-            let nearbyCreeps = filter(this.province.creeps,(c) => this.renewableRoles.includes(c.memory.role)
-            && !c.spawning
-            && !any(c.body, (b) => b.boost !== undefined)
-            && (c.ticksToLive ?? 2000) < (CREEP_LIFE_TIME - this.renewAmount(c))
-            && availableEnergy >= this.energyToRenew(c)
-            && c.pos.getRangeTo(spawn) <= 1);
+            throw new Error("This province has no spawns");
+        }
 
-            if(nearbyCreeps.length > 0)
+        let availableEnergy = AvailableSpawnEnergy(spawn);
+        let nearbyCreeps = filter(this.province.creeps,(c) => this.renewableRoles.includes(c.memory.role)
+        && !c.spawning
+        && !any(c.body, (b) => b.boost !== undefined)
+        && (c.ticksToLive ?? 2000) < (CREEP_LIFE_TIME - this.renewAmount(c))
+        && availableEnergy >= this.energyToRenew(c)
+        && c.pos.getRangeTo(spawn) <= 5);
+
+        for(const nearby of nearbyCreeps)
+        {
+            if(nearby.pos.inRangeTo(spawn.pos,1))
             {
-                let closestToDeath = min(nearbyCreeps, (c) => c.ticksToLive);
-                spawn.renewCreep(closestToDeath);
+                spawn.renewCreep(nearby);
+                return;
             }
+        }
+
+        if(nearbyCreeps.length > 0)
+        {
+            let nearestToDeath = min(nearbyCreeps, (c) => c.ticksToLive);
+            let firstPlan = nearestToDeath.memory.plan.peek();
+            if(firstPlan instanceof MoveAction && firstPlan.Target.isEqualTo(spawn.pos))
+            {
+                return;
+            }
+            nearestToDeath.memory.plan.prepend(new MoveAction(spawn.pos,1,true));
+            return;
         }
     }
 

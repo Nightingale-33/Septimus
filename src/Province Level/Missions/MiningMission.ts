@@ -148,9 +148,18 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
   lastCreepsHad: number = 0;
 
   run(): void {
+    let room = Game.rooms[this.pos.roomName];
+    if(room?.controller?.owner !== undefined && room?.controller?.owner.username !== (this.province.spawns[0].owner.username))
+    {
+      log(1,`This prefecture has been fully claimed by another. Removing`);
+      Game.notify(`Abandoning mining on ${this.flag.room?.name} due to ${room?.controller?.owner.username} claiming it`);
+      this.flag.remove();
+      return;
+    }
+
     if(find(this.province.ActiveMissions, (m) => m instanceof DefendPrefectureMission && m.pos.roomName == this.flag.pos.roomName))
     {
-      log(1,`Skipping mining mission due to danger`);
+      log(1,`Skipping mining mission ${this.Id} due to danger`);
       return;
     }
 

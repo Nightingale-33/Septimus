@@ -10,6 +10,7 @@ import { SimpleAttack } from "lib/Planning/Behaviours/Combat/SimpleAttack";
 import { MeleeAction } from "lib/Actions/Creep/Combat/Action.MeleeAttack";
 import { SPEARMAN } from "lib/Roles/Combat/Role.Spearman";
 import { log } from "utils/Logging/Logger";
+import { filter, remove } from 'lodash';
 
 export class ReserveControllerMission extends ProvinceMission {
   priority: number = 250;
@@ -29,6 +30,15 @@ export class ReserveControllerMission extends ProvinceMission {
     if(!(this.prefecture = this.province.Prefectures.find((p) => p.RoomName === this.flag.pos.roomName)))
     {
       this.province.Prefectures.push(this.prefecture = new Prefecture(this.province,this.flag.pos.roomName));
+    }
+
+    if(this.prefecture?.room?.controller?.owner !== undefined && this.prefecture.room.controller.owner.username !== (this.province.spawns[0].owner.username))
+    {
+      log(1,`This prefecture has been fully claimed by another. Removing`);
+      Game.notify(`Abandoning reservation on ${this.flag.room?.name} due to ${this.prefecture.room.controller.owner.username} claiming it`);
+      this.province.Prefectures = filter(this.province.Prefectures, (p) => p.RoomName !== this.pos.roomName);
+      this.flag.remove();
+      return;
     }
 
     if(this.prefecture.room?.controller?.reservation?.username === "Invader")

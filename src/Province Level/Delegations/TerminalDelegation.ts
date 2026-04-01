@@ -93,7 +93,7 @@ export class TerminalDelegation extends Delegation implements Behaviour {
                 }
             }
 
-            if(ResourceReservation.GetPostReservationStore(this.Terminal!,RESOURCE_ENERGY).used < 100_000)
+            if(ResourceReservation.GetPostReservationStore(this.Terminal!,RESOURCE_ENERGY).used < 100_000 || (this.province.storage && ResourceReservation.GetPostReservationStore(this.province.storage,RESOURCE_ENERGY,true).used >= 500_000))
             {
                 log(1,`Terminal Plan ${creep.name}: Looking for energy`);
 

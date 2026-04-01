@@ -20,7 +20,7 @@ export class Recycler extends Delegation
         this.province = province;
     }
 
-    rolesToRecycle: Role[] = [LEGIONNAIRE,SPEARMAN,HARVESTER];
+    rolesToRecycle: Role[] = [LEGIONNAIRE,SPEARMAN];
 
     ShouldExecute(): boolean {
         return any(this.province.creeps, (c) => this.rolesToRecycle.includes(c.memory.role) && c.memory.assignmentId === undefined);
@@ -32,8 +32,6 @@ export class Recycler extends Delegation
         {
             throw new Error("There are no spawns for this province");
         }
-
-        console.log(`Checking data: ${JSON.stringify(aSpawn)}`);
 
         let recyclableCreeps = filter(this.province.creeps, (c) =>
         this.rolesToRecycle.includes(c.memory.role)

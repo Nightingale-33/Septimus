@@ -89,7 +89,7 @@ export class RoadBuilder extends Delegation implements CostMatrixAdjuster {
         let built = 0;
         while (built < maximumPossible && this.PlannedRoads.length > 0) {
           let point = this.PlannedRoads.shift();
-          if (point) {
+          if (point && (Game.rooms[point.roomName])) {
             if (point.createConstructionSite(STRUCTURE_ROAD) === OK) {
               built++;
             }
