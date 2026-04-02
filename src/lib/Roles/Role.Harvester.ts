@@ -1,5 +1,5 @@
 import { Province } from "../../Province Level/Province";
-import { SOURCE_HARVEST_PARTS } from "../../Constants";
+import { SOURCE_HARVEST_PARTS } from "../../constants";
 import { GetCreepMemory, GetLargestBody, SpawnCreep } from "../../utils/SpawnUtils";
 
 export const HARVESTER = "Harvester";

@@ -1,4 +1,4 @@
-import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
+import { ProvinceMission } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
 import { defaultsDeep } from "lodash";
 import { WORKER } from "../../lib/Roles/Role.Worker";
@@ -9,19 +9,16 @@ import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { EnergyAcquisitionBehaviour } from "../../lib/Planning/Behaviours/EnergyAcquisition";
 
-interface OwnedControllerMemory extends ProvinceMissionMemory {
-}
-
-const defaultOwnedControllerMemory: OwnedControllerMemory = {
-  Id: ""
-};
 
 export class OwnedControllerMission extends ProvinceMission implements Behaviour {
-  memory: OwnedControllerMemory;
 
   priority: number = 1;
 
   controllerId: Id<StructureController>;
+
+  get Id() : string {
+    return this.flag.name;
+  }
 
   get controller(): StructureController | null {
     return Game.getObjectById(this.controllerId);
@@ -34,7 +31,6 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
   constructor(flag: Flag, province: Province) {
     let controllerId = flag.name.split("_", 2)[1] as Id<StructureController>;
     super(flag, province,`${province.name}_${controllerId}`);
-    defaultsDeep(this.memory, defaultOwnedControllerMemory);
     this.controllerId = controllerId
     this.Planner = new Planner(this);
     this.energyAcquisition = new EnergyAcquisitionBehaviour(this.province);
@@ -85,9 +81,9 @@ export class OwnedControllerMission extends ProvinceMission implements Behaviour
 
     let requestPriority = controller.ticksToDowngrade < 2500 ? this.priority*this.priority : this.priority;
 
-    let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.memory.Id, requestPriority, {deRegisterExcess: false});
+    let creeps = this.province.RequestParts([WORKER], CARRY, levelAmount, this.Id, requestPriority, {deRegisterExcess: false});
 
-    creeps = this.province.RequestCreeps(WORKER, Infinity, this.memory.Id, 0, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
+    creeps = this.province.RequestCreeps(WORKER, Infinity, this.Id, 0, { deRegisterExcess: false, requestSpawn: false, stealCreeps: true });
 
     for (const creep of creeps) {
       this.Planner.Plan(creep);

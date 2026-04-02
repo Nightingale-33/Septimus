@@ -1,7 +1,7 @@
 import { Action } from "../Action";
 import { all } from "lodash";
 import { ActionfromJSON } from "../ActionGenerator";
-import { CHATTY } from "../../Constants";
+import { CHATTY } from "../../constants";
 import { log } from "../../utils/Logging/Logger";
 
 declare global {

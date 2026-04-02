@@ -2,11 +2,11 @@ import { HARVESTER } from "../../lib/Roles/Role.Harvester";
 import { MoveAction } from "../../lib/Actions/Creep/Action.Move";
 import { HarvestAction } from "../../lib/Actions/Creep/Action.Harvest";
 import { defaultsDeep, find, max } from "lodash";
-import { ProvinceMission, ProvinceMissionMemory } from "../../lib/Mission/ProvinceMission";
+import { ProvinceMission } from "../../lib/Mission/ProvinceMission";
 import { Province } from "../Province";
 import { BuildAction } from "../../lib/Actions/Creep/Action.Build";
 import { RepairAction } from "../../lib/Actions/Creep/Action.Repair";
-import { SOURCE_HARVEST_PARTS } from "../../Constants";
+import { SOURCE_HARVEST_PARTS } from "../../constants";
 import { log } from "../../utils/Logging/Logger";
 import { FillAction } from "../../lib/Actions/Creep/Action.Fill";
 import { IdleAction } from "../../lib/Actions/Creep/Action.Idle";
@@ -19,15 +19,10 @@ import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { DefendPrefectureMission } from "./DefendPrefectureMission";
 
-interface MiningSiteMemory extends ProvinceMissionMemory {
-}
-
-const defaultMiningSiteMemory: MiningSiteMemory = {
-  Id: ""
-};
-
 export class MiningMission extends ProvinceMission implements Behaviour, CostMatrixAdjuster {
-  memory: MiningSiteMemory;
+  get Id() : string {
+    return this.flag.name;
+  }
 
   get visibility(): boolean {
     return this.source !== null;
@@ -67,7 +62,6 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
     this.sourceId = sourceId;
     this.pos = flag.pos;
     this.Planner = new Planner(this, 5);
-    defaultsDeep(this.memory, defaultMiningSiteMemory);
     this.resolveContainer();
     this.miningPos = this.resolveMiningPos();
     this.maxMiners = this.resolveMaxMiners();
@@ -172,7 +166,7 @@ export class MiningMission extends ProvinceMission implements Behaviour, CostMat
     let spawnPred = (province: Province) => {
       return this.lastCreepsHad === 0 || (province.Capital.room.energyAvailable / province.Capital.room.energyCapacityAvailable) >= 0.95;
     };
-    let creeps = this.province.RequestParts([HARVESTER], WORK, SOURCE_HARVEST_PARTS + 1, this.memory.Id, this.lastCreepsHad === 0 ? this.priority : this.priority / Math.pow(1000, this.lastCreepsHad), {
+    let creeps = this.province.RequestParts([HARVESTER], WORK, SOURCE_HARVEST_PARTS + 1, this.Id, this.lastCreepsHad === 0 ? this.priority : this.priority / Math.pow(1000, this.lastCreepsHad), {
       maxCreeps: practicalMax,
       deRegisterExcess: false,
       stealCreeps: false,

@@ -1,4 +1,4 @@
-import { ROOM_BOUNDARY_VALUES } from "../../Constants";
+import { ROOM_BOUNDARY_VALUES } from "../../constants";
 
 export class MinCut {
 

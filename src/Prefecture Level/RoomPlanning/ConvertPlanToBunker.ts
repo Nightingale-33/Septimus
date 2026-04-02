@@ -6,7 +6,7 @@ import { designDiamond } from "./BaseDesignDiamond";
 import { isEnterable } from "../../utils/MovementUtils";
 import { log } from "utils/Logging/Logger";
 import { TRACE_FLAG } from "utils/Logging/FlagDecs";
-import { ROOM_BOUNDARY_VALUES } from "Constants";
+import { ROOM_BOUNDARY_VALUES } from "constants";
 
 export interface BasePlan {
   buildings: {[id:string] : {x:number,y:number}[]}

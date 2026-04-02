@@ -7,23 +7,15 @@ export interface MissionMemory extends FlagMemory {
 }
 
 export abstract class Mission {
-  memory: MissionMemory;
   pos: RoomPosition;
   empire: Empire;
   flag: Flag;
 
-  get Id(): string {return this.memory.Id;};
+  get Id(): string {return this.flag.name;};
 
   protected constructor(flag : Flag, Id : string) {
     this.flag = flag;
     this.pos = flag.pos;
-    //Done to acquire the flag memory object
-    //@ts-ignore
-    this.memory = flag.memory;
-    if(!this.memory.Id)
-    {
-      this.memory.Id = Id;
-    }
     this.empire = global.empire!;
   }
 

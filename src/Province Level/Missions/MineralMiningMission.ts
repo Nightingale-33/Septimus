@@ -5,7 +5,7 @@ import { HarvestAction } from "lib/Actions/Creep/Action.Harvest";
 import { IdleAction } from "lib/Actions/Creep/Action.Idle";
 import { MoveAction } from "lib/Actions/Creep/Action.Move";
 import { RepairAction } from "lib/Actions/Creep/Action.Repair";
-import { ProvinceMission, ProvinceMissionMemory } from "lib/Mission/ProvinceMission";
+import { ProvinceMission } from "lib/Mission/ProvinceMission";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
 import { Behaviour, Planner } from "lib/Planning/Planner";
 import { RepairReservation } from "lib/Reservations/RepairReservations";
@@ -17,15 +17,7 @@ import { Province } from "Province Level/Province";
 import { log } from "utils/Logging/Logger";
 import { CostMatrixAdjuster } from "utils/MovementUtils";
 
-interface MineralMiningSiteMemory extends ProvinceMissionMemory {
-}
-
-const defaultMiningSiteMemory: MineralMiningSiteMemory = {
-  Id: ""
-};
-
 export class MineralMiningMission extends ProvinceMission implements Behaviour, CostMatrixAdjuster {
-    memory: MineralMiningSiteMemory;
 
     priority: number = 1000;
 
@@ -47,7 +39,6 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
         this.mineralId = mineralId;
         this.pos = flag.pos;
         this.Planner = new Planner(this, 5);
-        defaultsDeep(this.memory, defaultMiningSiteMemory);
         this.resolveContainer();
         this.miningPos = this.resolveMiningPos();
     }
@@ -177,7 +168,7 @@ export class MineralMiningMission extends ProvinceMission implements Behaviour, 
         }
 
 
-        let creeps = this.province.RequestCreeps(EXTRACTOR, 1, this.memory.Id, this.priority, {
+        let creeps = this.province.RequestCreeps(EXTRACTOR, 1, this.Id, this.priority, {
           maxCreeps: 1,
           deRegisterExcess: false,
           stealCreeps: false,
