@@ -11,7 +11,7 @@ import { log } from "../../utils/Logging/Logger";
 import { Behaviour, Planner } from "../../lib/Planning/Planner";
 import { Action } from "lib/Action";
 import { AbstractCreep } from "lib/Planning/AbstractCreep";
-import { SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED } from "../../Constants";
+import { SOURCE_CARRY_PARTS_PER_DISTANCE_OWNED } from "../../constants";
 import { LOG_FLAG } from '../../utils/Logging/FlagDecs';
 import { WORKER } from "lib/Roles/Role.Worker";
 import { Role } from "lib/Roles/Role";
